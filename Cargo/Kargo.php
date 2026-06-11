@@ -1,4 +1,6 @@
-* File: Kargo.php
+<?php
+/**
+ * File: Kargo.php
  * Abstract Class: Kargo
  * Fungsi: Class abstrak utama untuk modul kargo dengan implementasi OOP (Enkapsulasi, Abstraksi)
  */
