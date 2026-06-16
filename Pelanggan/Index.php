@@ -119,9 +119,9 @@ $result = $koneksi->query($sql);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modul PELANGGAN - Ekspedisi Logistik</title>
+    <title>Sistem Manajemen Pelanggan - Ekspedisi Logistik</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -145,9 +145,8 @@ $result = $koneksi->query($sql);
             font-size: 1.3rem;
         }
         
-        .container-main {
-            margin-top: 2rem;
-            margin-bottom: 2rem;
+        .container-fluid {
+            background-color: #ecf0f1;
         }
         
         .card {
@@ -177,10 +176,6 @@ $result = $koneksi->query($sql);
             background: #2980b9;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
-        }
-        
-        .table {
-            margin-bottom: 0;
         }
         
         .table thead {
@@ -215,26 +210,6 @@ $result = $koneksi->query($sql);
             padding: 1rem 1.5rem;
         }
         
-        .stat-box {
-            background: white;
-            border-radius: 8px;
-            padding: 1.5rem;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--secondary-color);
-        }
-        
-        .stat-label {
-            color: #7f8c8d;
-            margin-top: 0.5rem;
-            font-weight: 500;
-        }
-        
         .benefit-list {
             list-style: none;
             padding-left: 0;
@@ -248,24 +223,16 @@ $result = $koneksi->query($sql);
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
         
-        .btn-warning {
-            background: #f39c12;
-            border: none;
-            color: white;
+        .bg-dark {
+            background-color: var(--primary-color) !important;
         }
         
-        .btn-warning:hover {
-            background: #e67e22;
-            color: white;
+        .bg-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
         }
         
-        .btn-danger {
-            background: var(--danger-color);
-            border: none;
-        }
-        
-        .btn-danger:hover {
-            background: #c0392b;
+        .nav-link:hover {
+            background-color: rgba(255,255,255,0.1);
         }
         
         .btn-info {
@@ -278,186 +245,182 @@ $result = $koneksi->query($sql);
             background: #16a085;
             color: white;
         }
+        
+        .btn-danger {
+            background: var(--danger-color);
+            border: none;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn-success {
+            background: var(--success-color);
+            border: none;
+        }
+        
+        .btn-success:hover {
+            background: #219a52;
+        }
     </style>
 </head>
 <body>
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-dark">
-        <div class="container-fluid">
-            <span class="navbar-brand">
-                <i class="bi bi-people-fill"></i> Modul PELANGGAN - Ekspedisi Logistik
-            </span>
-        </div>
-    </nav>
-
-    <div class="container-main">
-        <!-- MESSAGE ALERT -->
-        <?php if ($message): ?>
-            <div class="alert alert-<?= $messageType ?> alert-dismissible fade show" role="alert">
-                <i class="bi bi-<?= ($messageType == 'success' ? 'check-circle' : 'exclamation-circle') ?>"></i>
-                <?= $message ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-        
-        <?php if (isset($_SESSION['calculation']) && isset($_GET['show_calculation'])): ?>
-            <?php $calc = $_SESSION['calculation']; ?>
-            <div class="card mb-4 border-success">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="bi bi-calculator"></i> Hasil Perhitungan Diskon</h5>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 bg-dark min-vh-100 p-0">
+                <div class="bg-primary p-3 text-white text-center">
+                    <h4>Cargo Ekspedisi</h4>
+                    <small>Logistik System</small>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Nama Pelanggan:</strong> <?= htmlspecialchars($calc['nama']) ?></p>
-                            <p><strong>Jenis Pelanggan:</strong> 
-                                <span class="badge bg-primary"><?= htmlspecialchars($calc['jenis']) ?></span>
-                            </p>
-                            <p><strong>Total Biaya Awal:</strong> Rp <?= number_format($calc['total_awal'], 0, ',', '.') ?></p>
-                            <p><strong>Diskon:</strong> 
-                                <span class="badge discount-badge">Rp <?= number_format($calc['diskon'], 0, ',', '.') ?></span>
-                            </p>
-                            <h4><strong>Total Akhir:</strong> Rp <?= number_format($calc['total_akhir'], 0, ',', '.') ?></h4>
+                <nav class="nav flex-column mt-3">
+                    <a class="nav-link text-white" href="../Dashboard.php">
+                        <i class="fas fa-dashboard"></i> Dashboard
+                    </a>
+                    <a class="nav-link text-white" href="../Armada/index.php">
+                        <i class="fas fa-truck"></i> Armada
+                    </a>
+                    <a class="nav-link text-white" href="../Cargo/index.php">
+                        <i class="fas fa-box"></i> Cargo
+                    </a>
+                    <a class="nav-link bg-primary text-white" href="index.php">
+                        <i class="fas fa-users"></i> Pelanggan
+                    </a>
+                    <a class="nav-link text-white" href="../Pembayaran/index.php">
+                        <i class="fas fa-credit-card"></i> Pembayaran
+                    </a>
+                    <a class="nav-link text-white" href="../Staff/index.php">
+                        <i class="fas fa-user-tie"></i> Staff
+                    </a>
+                </nav>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 p-4">
+                <h2 class="mb-4"><i class="fas fa-users"></i> Manajemen Pelanggan</h2>
+                
+                <?php if ($message): ?>
+                    <div class="alert alert-<?= $messageType ?> alert-dismissible fade show" role="alert">
+                        <?= $message ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <?php endif; ?>
+                
+                <?php if (isset($_SESSION['calculation']) && isset($_GET['show_calculation'])): ?>
+                    <?php $calc = $_SESSION['calculation']; ?>
+                    <div class="card mb-4 border-success">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="fas fa-calculator"></i> Hasil Perhitungan Diskon</h5>
                         </div>
-                        <div class="col-md-6">
-                            <h6><i class="bi bi-gift"></i> Benefit yang Didapatkan:</h6>
-                            <ul class="benefit-list">
-                                <?php foreach ($calc['benefits'] as $benefit): ?>
-                                    <li><?= htmlspecialchars($benefit) ?></li>
-                                <?php endforeach; ?>
-                            </ul>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Nama Pelanggan:</strong> <?= htmlspecialchars($calc['nama']) ?></p>
+                                    <p><strong>Jenis Pelanggan:</strong> 
+                                        <span class="badge bg-primary"><?= htmlspecialchars($calc['jenis']) ?></span>
+                                    </p>
+                                    <p><strong>Total Biaya Awal:</strong> Rp <?= number_format($calc['total_awal'], 0, ',', '.') ?></p>
+                                    <p><strong>Diskon:</strong> 
+                                        <span class="badge discount-badge">Rp <?= number_format($calc['diskon'], 0, ',', '.') ?></span>
+                                    </p>
+                                    <h4><strong>Total Akhir:</strong> Rp <?= number_format($calc['total_akhir'], 0, ',', '.') ?></h4>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-gift"></i> Benefit yang Didapatkan:</h6>
+                                    <ul class="benefit-list">
+                                        <?php foreach ($calc['benefits'] as $benefit): ?>
+                                            <li><?= htmlspecialchars($benefit) ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            <?php unset($_SESSION['calculation']); ?>
-        <?php endif; ?>
-        
-        <!-- STATISTICS -->
-        <div class="row mb-4">
-            <?php 
-                // Hitung statistik pelanggan
-                $sql_stats = "SELECT 
-                                COUNT(*) as total,
-                                SUM(CASE WHEN jenis_pelanggan = 'Retail' THEN 1 ELSE 0 END) as retail,
-                                SUM(CASE WHEN jenis_pelanggan = 'VIP' THEN 1 ELSE 0 END) as vip,
-                                SUM(CASE WHEN jenis_pelanggan = 'MitraKorporat' THEN 1 ELSE 0 END) as korporat,
-                                SUM(poin_reward) as total_poin
-                              FROM pelanggan";
-                $stats_result = $koneksi->query($sql_stats);
-                $stats = $stats_result->fetch_assoc();
-            ?>
-            <div class="col-md-3">
-                <div class="stat-box">
-                    <div class="stat-number"><?= $stats['retail'] ?? 0 ?></div>
-                    <div class="stat-label">Retail</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-box">
-                    <div class="stat-number"><?= $stats['vip'] ?? 0 ?></div>
-                    <div class="stat-label">VIP</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-box">
-                    <div class="stat-number"><?= $stats['korporat'] ?? 0 ?></div>
-                    <div class="stat-label">Mitra Korporat</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-box">
-                    <div class="stat-number"><?= $stats['total'] ?? 0 ?></div>
-                    <div class="stat-label">Total Pelanggan</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Button to trigger modal -->
-        <div class="mb-3">
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPelangganModal">
-                <i class="bi bi-plus-lg"></i> Tambah Pelanggan Baru
-            </button>
-        </div>
-        
-        <!-- Customer List -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-list-ul"></i> Daftar Pelanggan</h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Kode</th>
-                                <th>Nama Lengkap</th>
-                                <th>Jenis</th>
-                                <th>Total Transaksi Bulan Ini</th>
-                                <th>Poin Reward</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if ($result && $result->num_rows > 0): ?>
-                                <?php while ($row = $result->fetch_assoc()): ?>
-                                <tr>
-                                    <td><code><?= htmlspecialchars($row['id_pelanggan_code']) ?></code></td>
-                                    <td><strong><?= htmlspecialchars($row['nama_lengkap']) ?></strong></td>
-                                    <td>
-                                        <span class="badge <?= $row['jenis_pelanggan'] == 'VIP' ? 'bg-warning' : ($row['jenis_pelanggan'] == 'MitraKorporat' ? 'bg-info' : 'bg-secondary') ?>">
-                                            <?= htmlspecialchars($row['jenis_pelanggan']) ?>
-                                        </span>
-                                    </td>
-                                    <td>Rp <?= number_format($row['total_transaksi_bulan_ini'], 0, ',', '.') ?></td>
-                                    <td><?= $row['poin_reward'] ?></td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#calculateModal<?= $row['id_pelanggan'] ?>" title="Hitung Diskon">
-                                                <i class="bi bi-calculator"></i>
-                                            </button>
-                                            <a href="?delete=<?= $row['id_pelanggan'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus?')" title="Hapus">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
+                    <?php unset($_SESSION['calculation']); ?>
+                <?php endif; ?>
+                
+                <!-- Button to trigger modal -->
+                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addPelangganModal">
+                    <i class="fas fa-plus"></i> Tambah Pelanggan Baru
+                </button>
+                
+                <!-- Customer List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Daftar Pelanggan</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Kode</th>
+                                        <th>Nama Lengkap</th>
+                                        <th>Jenis</th>
+                                        <th>Total Transaksi Bulan Ini</th>
+                                        <th>Poin Reward</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if ($result && $result->num_rows > 0): ?>
+                                        <?php while ($row = $result->fetch_assoc()): ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars($row['id_pelanggan_code']) ?></td>
+                                            <td><?= htmlspecialchars($row['nama_lengkap']) ?></td>
+                                            <td>
+                                                <span class="badge <?= $row['jenis_pelanggan'] == 'VIP' ? 'bg-warning' : ($row['jenis_pelanggan'] == 'MitraKorporat' ? 'bg-info' : 'bg-secondary') ?>">
+                                                    <?= htmlspecialchars($row['jenis_pelanggan']) ?>
+                                                </span>
+                                            </td>
+                                            <td>Rp <?= number_format($row['total_transaksi_bulan_ini'], 0, ',', '.') ?></td>
+                                            <td><?= $row['poin_reward'] ?></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#calculateModal<?= $row['id_pelanggan'] ?>">
+                                                    <i class="fas fa-calculator"></i> Hitung Diskon
+                                                </button>
+                                                <a href="?delete=<?= $row['id_pelanggan'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus?')">
+                                                    <i class="fas fa-trash"></i> Hapus
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        
+                                        <!-- Calculate Modal for each customer -->
+                                        <div class="modal fade" id="calculateModal<?= $row['id_pelanggan'] ?>" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <form method="POST">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Hitung Diskon - <?= htmlspecialchars($row['nama_lengkap']) ?></h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <input type="hidden" name="action" value="calculate_discount">
+                                                            <input type="hidden" name="id_pelanggan" value="<?= $row['id_pelanggan'] ?>">
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Total Biaya Pengiriman (Rp)</label>
+                                                                <input type="number" class="form-control" name="total_biaya" required>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="submit" class="btn btn-primary">Hitung Diskon</button>
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </td>
-                                </tr>
-                                
-                                <!-- Calculate Modal for each customer -->
-                                <div class="modal fade" id="calculateModal<?= $row['id_pelanggan'] ?>" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <form method="POST">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Hitung Diskon - <?= htmlspecialchars($row['nama_lengkap']) ?></h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <input type="hidden" name="action" value="calculate_discount">
-                                                    <input type="hidden" name="id_pelanggan" value="<?= $row['id_pelanggan'] ?>">
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Total Biaya Pengiriman (Rp)</label>
-                                                        <input type="number" class="form-control" name="total_biaya" required>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="submit" class="btn btn-primary">Hitung Diskon</button>
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                <?php endwhile; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
-                                        <i class="bi bi-inbox"></i> Belum ada data pelanggan
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                                        <?php endwhile; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="6" class="text-center">Belum ada data pelanggan</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -469,7 +432,7 @@ $result = $koneksi->query($sql);
             <div class="modal-content">
                 <form method="POST">
                     <div class="modal-header">
-                        <h5 class="modal-title"><i class="bi bi-person-plus"></i> Tambah Pelanggan Baru</h5>
+                        <h5 class="modal-title">Tambah Pelanggan Baru</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
@@ -530,12 +493,8 @@ $result = $koneksi->query($sql);
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-check-lg"></i> Simpan
-                        </button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="bi bi-x-lg"></i> Batal
-                        </button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     </div>
                 </form>
             </div>
