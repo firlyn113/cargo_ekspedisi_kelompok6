@@ -25,7 +25,7 @@ $result = $koneksi->query($query);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modul Pembayaran - Ekspedisi Logistik</title>
+    <title>Manajemen Pembayaran - Cargo Ekspedisi</title>
     <style>
         * {
             margin: 0;
@@ -34,154 +34,193 @@ $result = $koneksi->query($query);
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f2f5;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        /* Header - Biru seperti gambar */
-        .header {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            padding: 20px 25px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .header h1 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-        .header h1 span {
-            font-weight: normal;
-            font-size: 14px;
-            background: rgba(255,255,255,0.2);
-            padding: 2px 8px;
-            border-radius: 20px;
-            margin-left: 10px;
-        }
-        .header p {
-            opacity: 0.85;
-            font-size: 13px;
-        }
-        
-        /* Stat Cards - Simple putih dengan border left */
-        .stats-container {
+            background: #f5f7fa;
             display: flex;
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-        .stat-card {
-            background: white;
-            border-radius: 8px;
-            padding: 15px 20px;
-            flex: 1;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border-left: 4px solid #2a5298;
-        }
-        .stat-card h3 {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        .stat-card .number {
-            font-size: 28px;
-            font-weight: bold;
-            color: #1e3c72;
+            min-height: 100vh;
         }
         
-        /* Toolbar - Search dan Tombol Tambah */
-        .toolbar {
-            background: white;
-            border-radius: 8px;
-            padding: 15px 20px;
+        /* ===== SIDEBAR NAV ===== */
+        .sidebar {
+            width: 250px;
+            background: #1e3c72;
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        .sidebar .brand {
+            padding: 0 20px 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
             margin-bottom: 20px;
+        }
+        .sidebar .brand h2 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .sidebar .brand p {
+            font-size: 12px;
+            opacity: 0.7;
+            letter-spacing: 2px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar ul li {
+            padding: 0;
+        }
+        .sidebar ul li a {
+            display: block;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 14px;
+            border-left: 3px solid transparent;
+        }
+        .sidebar ul li a:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: #ffc107;
+        }
+        .sidebar ul li a.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: #ffc107;
+        }
+        .sidebar ul li a .icon {
+            margin-right: 10px;
+        }
+        
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 25px 30px;
+        }
+        
+        /* Header */
+        .page-header {
+            margin-bottom: 25px;
+        }
+        .page-header h1 {
+            font-size: 26px;
+            color: #1e3c72;
+            font-weight: 600;
+        }
+        .page-header p {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        /* Toolbar - Tombol Tambah */
+        .toolbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 20px;
             flex-wrap: wrap;
             gap: 15px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .btn-add {
+            background: #1e3c72;
+            color: white;
+            padding: 10px 22px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        .btn-add:hover {
+            background: #2a5298;
         }
         .search-box {
             display: flex;
             gap: 10px;
             align-items: center;
         }
-        .search-box label {
-            font-size: 14px;
-            color: #333;
-        }
         .search-box input {
-            padding: 8px 12px;
+            padding: 9px 14px;
             border: 1px solid #ddd;
-            border-radius: 4px;
-            width: 260px;
+            border-radius: 6px;
+            width: 280px;
             font-size: 13px;
+            background: white;
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
         }
         .search-box button {
-            padding: 8px 16px;
-            background: #2a5298;
+            padding: 9px 18px;
+            background: #1e3c72;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 13px;
         }
         .search-box button:hover {
-            background: #1e3c72;
-        }
-        .btn-add {
-            padding: 8px 20px;
             background: #2a5298;
-            color: white;
+        }
+        .reset-link {
+            color: #666;
             text-decoration: none;
-            border-radius: 4px;
+            padding: 9px 14px;
+            background: #f0f0f0;
+            border-radius: 6px;
             font-size: 13px;
         }
-        .btn-add:hover {
-            background: #1e3c72;
+        .reset-link:hover {
+            background: #e0e0e0;
         }
         
-        /* Table - Rapi seperti gambar */
+        /* ===== TABLE ===== */
         .table-container {
             background: white;
-            border-radius: 8px;
+            border-radius: 10px;
             overflow-x: auto;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: 14px;
         }
         th {
             background: #f8f9fa;
-            padding: 12px 15px;
+            padding: 13px 18px;
             text-align: left;
             font-weight: 600;
             color: #333;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 2px solid #e9ecef;
         }
         td {
-            padding: 10px 15px;
+            padding: 12px 18px;
             border-bottom: 1px solid #f0f0f0;
             color: #555;
         }
         tr:hover {
-            background: #fafafa;
+            background: #f8f9fa;
         }
         
         /* Badge Status */
         .badge {
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 11px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
             font-weight: 500;
             display: inline-block;
         }
@@ -202,99 +241,87 @@ $result = $koneksi->query($query);
         .btn-edit {
             background: #ffc107;
             color: #333;
-            padding: 4px 10px;
-            border-radius: 3px;
+            padding: 4px 12px;
+            border-radius: 4px;
             text-decoration: none;
-            font-size: 11px;
+            font-size: 12px;
+        }
+        .btn-edit:hover {
+            background: #e0a800;
         }
         .btn-delete {
             background: #dc3545;
             color: white;
-            padding: 4px 10px;
-            border-radius: 3px;
+            padding: 4px 12px;
+            border-radius: 4px;
             text-decoration: none;
-            font-size: 11px;
+            font-size: 12px;
+        }
+        .btn-delete:hover {
+            background: #c82333;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #999;
+        }
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .empty-state p {
+            font-size: 16px;
         }
         
         /* Footer */
-        .footer-stats {
-            background: white;
-            border-radius: 8px;
-            padding: 12px 20px;
+        .footer-info {
             margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             color: #666;
             font-size: 13px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
         }
-        .footer-stats .total-data {
-            font-weight: 600;
+        .footer-info strong {
             color: #1e3c72;
-        }
-        
-        /* Reset link style */
-        .reset-link {
-            color: #666;
-            text-decoration: none;
-            padding: 8px 12px;
-            background: #e9ecef;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-        .reset-link:hover {
-            background: #dee2e6;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <!-- Header - Biru seperti gambar -->
-    <div class="header">
-        <h1>Modul PEMBAYARAN - Ekspedisi Logistik <span>Kelompok 6</span></h1>
-        <p>Kelola transaksi pembayaran, validasi, dan monitoring status pembayaran</p>
-    </div>
 
-    <!-- Statistics Cards -->
-    <div class="stats-container">
-        <div class="stat-card">
-            <h3> Total Transaksi</h3>
-            <div class="number"><?= $totalPembayaran ?></div>
-        </div>
-        <div class="stat-card">
-            <h3> Lunas</h3>
-            <div class="number">
-                <?php 
-                $lunas = $koneksi->query("SELECT COUNT(*) as total FROM pembayaran WHERE status_lunas='Lunas'")->fetch_assoc();
-                echo $lunas['total'];
-                ?>
-            </div>
-        </div>
-        <div class="stat-card">
-            <h3> Belum Lunas</h3>
-            <div class="number">
-                <?php 
-                $belum = $koneksi->query("SELECT COUNT(*) as total FROM pembayaran WHERE status_lunas='Belum Lunas'")->fetch_assoc();
-                echo $belum['total'];
-                ?>
-            </div>
-        </div>
-        <div class="stat-card">
-            <h3>Total Tagihan</h3>
-            <div class="number">
-                <?php 
-                $totalTagihan = $koneksi->query("SELECT SUM(total_tagihan) as total FROM pembayaran")->fetch_assoc();
-                echo 'Rp ' . number_format($totalTagihan['total'] ?? 0, 0, ',', '.');
-                ?>
-            </div>
-        </div>
+<!-- ===== SIDEBAR ===== -->
+<div class="sidebar">
+    <div class="brand">
+        <h2> Cargo Ekspedisi</h2>
+        <p>LOGISTIK SYSTEM</p>
+    </div>
+    <ul>
+        <li><a href="../dashboard.php"><span class="icon"></span> Dashboard</a></li>
+        <li><a href="../Armada/index.php"><span class="icon"></span> Armada</a></li>
+        <li><a href="../Kargo/index.php"><span class="icon"></span> Kargo</a></li>
+        <li><a href="../Pelanggan/index.php"><span class="icon"></span> Pelanggan</a></li>
+        <li><a href="index.php" class="active"><span class="icon"></span> Pembayaran</a></li>
+        <li><a href="../Staff/index.php"><span class="icon"></span> Staff</a></li>
+    </ul>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="main-content">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1> Manajemen Pembayaran</h1>
+        <p>Kelola transaksi pembayaran, validasi, dan monitoring status pembayaran</p>
     </div>
 
     <!-- Toolbar -->
     <div class="toolbar">
         <form class="search-box" method="GET">
-            <label>Cari nama atau ID transaksi...</label>
             <input type="text" name="search" placeholder="Cari ID Transaksi atau Metode..." value="<?= htmlspecialchars($search) ?>">
             <button type="submit">🔍 Cari</button>
             <?php if ($search != ''): ?>
@@ -346,8 +373,11 @@ $result = $koneksi->query($query);
                     <?php endwhile; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 40px; color: #999;">
-                            📭 Belum ada data pembayaran
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <div class="icon">📭</div>
+                                <p>Belum ada data pembayaran</p>
+                            </div>
                         </td>
                     </tr>
                 <?php endif; ?>
@@ -355,11 +385,12 @@ $result = $koneksi->query($query);
         </table>
     </div>
 
-    <!-- Footer Stats - Persis seperti gambar -->
-    <div class="footer-stats">
-        <div> <span class="total-data">Daftar Pembayaran</span></div>
-        <div>Total Data: <strong><?= $totalPembayaran ?></strong></div>
+    <!-- Footer -->
+    <div class="footer-info">
+        <span> <strong>Daftar Pembayaran</strong></span>
+        <span>Total Data: <strong><?= $totalPembayaran ?></strong></span>
     </div>
 </div>
+
 </body>
 </html>
