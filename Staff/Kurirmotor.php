@@ -232,26 +232,28 @@ class KurirMotor extends StaffLogistik {
     /**
      * Simpan data KurirMotor ke database
      */
-    public function save() {
-        $sql = "INSERT INTO staff (id_staff_code, nama_lengkap, gaji_pokok, jam_kerja, jenis_staff, plat_nomor_motor, area_cakupan) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
-        
-        $stmt = $this->getConn()->prepare($sql);
-        $jenisStaff = $this->getJenisStaff();
-        $gajiPokok = $this->getGajiPokok();
-        $jamKerja = $this->getJamKerja();
-        
-        $stmt->bind_param("ssdsss", 
-            $this->getIdStaffCode(),
-            $this->getNamaLengkap(),
-            $gajiPokok,
-            $jamKerja,
-            $jenisStaff,
-            $this->platNomorMotor,
-            $this->areaCakupan
-        );
-        
-        return $stmt->execute();
+   public function save() {
+    $sql = "INSERT INTO staff (id_staff_code, nama_lengkap, gaji_pokok, jam_kerja, jenis_staff, plat_nomor_motor, area_cakupan) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)";
+    
+    $stmt = $this->getConn()->prepare($sql);
+    $jenisStaff = $this->getJenisStaff();
+    $gajiPokok = $this->getGajiPokok();
+    $jamKerja = $this->getJamKerja();
+    
+    // ✅ Langsung tulis tipe data tanpa fungsi
+    $stmt->bind_param("ssdssss", 
+        $this->getIdStaffCode(),
+        $this->getNamaLengkap(),
+        $gajiPokok,
+        $jamKerja,
+        $jenisStaff,
+        $this->platNomorMotor,
+        $this->areaCakupan
+    );
+    
+    return $stmt->execute();
+
     }
 }
 ?>
