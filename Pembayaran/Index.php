@@ -251,7 +251,7 @@ $result = $koneksi->query($query);
 <div class="container">
     <!-- Header - Biru seperti gambar -->
     <div class="header">
-        <h1>Modul PEMBAYARAN - Ekspedisi Logistik <span></span></h1>
+        <h1>Modul PEMBAYARAN - Ekspedisi Logistik </h1>
         <p>Kelola transaksi pembayaran, validasi, dan monitoring status pembayaran</p>
     </div>
 
@@ -295,7 +295,7 @@ $result = $koneksi->query($query);
         <form class="search-box" method="GET">
             <label>Cari nama atau ID transaksi...</label>
             <input type="text" name="search" placeholder="Cari ID Transaksi atau Metode..." value="<?= htmlspecialchars($search) ?>">
-            <button type="submit">🔍 Cari</button>
+            <button type="submit"> Cari</button>
             <?php if ($search != ''): ?>
                 <a href="index.php" class="reset-link">Reset</a>
             <?php endif; ?>
