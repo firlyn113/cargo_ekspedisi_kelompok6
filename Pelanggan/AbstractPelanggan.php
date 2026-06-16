@@ -60,22 +60,23 @@ abstract class AbstractPelanggan {
         $this->poin_reward = $poin;
     }
     
-    // Common method untuk tambah transaksi
+    // Business logic method
     public function tambahTransaksi($nominal) {
         $this->total_transaksi_bulan_ini += $nominal;
         $this->poin_reward += floor($nominal / 100000); // 1 poin per 100k
     }
     
-    // Save to database
-    public function saveToDatabase($koneksi) {
-        $sql = "INSERT INTO pelanggan (id_pelanggan_code, nama_lengkap, total_transaksi_bulan_ini, poin_reward, jenis_pelanggan, created_at) 
-                VALUES ('{$this->id_pelanggan_code}', '{$this->nama_lengkap}', {$this->total_transaksi_bulan_ini}, {$this->poin_reward}, '{$this->jenis_pelanggan}', '{$this->created_at}')";
-        
-        if ($koneksi->query($sql)) {
-            $this->id_pelanggan = $koneksi->insert_id;
-            return true;
-        }
-        return false;
+    // Method untuk menampilkan info pelanggan (opsional)
+    public function getInfoPelanggan() {
+        return [
+            'id' => $this->id_pelanggan,
+            'code' => $this->id_pelanggan_code,
+            'nama' => $this->nama_lengkap,
+            'jenis' => $this->jenis_pelanggan,
+            'total_transaksi' => $this->total_transaksi_bulan_ini,
+            'poin' => $this->poin_reward,
+            'created_at' => $this->created_at
+        ];
     }
 }
 ?>
