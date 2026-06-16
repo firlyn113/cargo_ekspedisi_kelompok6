@@ -1,5 +1,5 @@
 <?php
-// Armada/Index.php - TAMPILAN PERSIS PELANGGAN
+// Armada/Index.php - STYLE PELANGGAN
 $host = "localhost";
 $user = "root";
 $pass = "";
@@ -11,9 +11,7 @@ if ($conn->connect_error) {
 }
 $conn->set_charset("utf8mb4");
 
-// ============================================
-// ABSTRACT CLASS ARMADA
-// ============================================
+// ===== CLASS =====
 abstract class Armada {
     protected $conn;
     private $id_armada;
@@ -83,9 +81,7 @@ abstract class Armada {
     }
 }
 
-// ============================================
-// CLASS TRUKDARAT
-// ============================================
+// ===== SUBCLASS =====
 class TrukDarat extends Armada {
     private $jumlah_roda;
     private $rute_tol;
@@ -123,9 +119,6 @@ class TrukDarat extends Armada {
     }
 }
 
-// ============================================
-// CLASS KAPALLAUT
-// ============================================
 class KapalLaut extends Armada {
     private $nama_dermaga;
     private $jenis_kontainer;
@@ -162,9 +155,6 @@ class KapalLaut extends Armada {
     }
 }
 
-// ============================================
-// CLASS PESAWATKARGO
-// ============================================
 class PesawatKargo extends Armada {
     private $batas_ketinggian;
     private $izin_penerbangan_khusus;
@@ -201,9 +191,7 @@ class PesawatKargo extends Armada {
     }
 }
 
-// ============================================
-// PROSES CRUD
-// ============================================
+// ===== CRUD =====
 $message = '';
 $error = '';
 
@@ -269,19 +257,16 @@ $armada_list = Armada::getAll($conn);
 ?>
 
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen Armada</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /* ===== RESET ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
             background: #f0f2f5;
             display: flex;
             min-height: 100vh;
@@ -301,29 +286,18 @@ $armada_list = Armada::getAll($conn);
         .sidebar-brand {
             padding: 20px;
             text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
         }
-        .sidebar-brand .logo {
-            font-size: 40px;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .sidebar-brand h2 {
-            font-size: 20px;
-            font-weight: 700;
-        }
-        .sidebar-brand small {
-            font-size: 11px;
-            color: #aaa;
-        }
-        .sidebar-menu {
-            padding: 15px 0;
-        }
+        .sidebar-brand .logo { font-size: 38px; display: block; margin-bottom: 4px; }
+        .sidebar-brand h2 { font-size: 19px; font-weight: 700; }
+        .sidebar-brand small { font-size: 11px; color: #888; }
+
+        .sidebar-menu { padding: 12px 0; }
         .sidebar-menu .label {
             padding: 8px 20px;
-            font-size: 11px;
+            font-size: 10px;
             text-transform: uppercase;
-            color: #666;
+            color: #555;
             letter-spacing: 1px;
             font-weight: 600;
         }
@@ -331,111 +305,82 @@ $armada_list = Armada::getAll($conn);
             display: flex;
             align-items: center;
             padding: 10px 20px;
-            color: #ccc;
+            color: #aaa;
             text-decoration: none;
             border-left: 3px solid transparent;
             gap: 12px;
-            transition: 0.3s;
+            transition: 0.25s;
         }
-        .sidebar-menu a:hover {
-            background: rgba(255,255,255,0.05);
-            color: #fff;
-        }
+        .sidebar-menu a:hover { background: rgba(255,255,255,0.04); color: #fff; }
         .sidebar-menu a.active {
-            background: rgba(52, 152, 219, 0.15);
+            background: rgba(52,152,219,0.12);
             color: #fff;
             border-left-color: #3498db;
         }
-        .sidebar-menu a .icon {
-            font-size: 18px;
-            width: 28px;
-        }
+        .sidebar-menu a .icon { font-size: 17px; width: 26px; text-align: center; }
 
         /* ===== MAIN ===== */
-        .main {
-            flex: 1;
-            padding: 25px;
-        }
+        .main { flex: 1; padding: 25px; }
 
         /* ===== HEADER ===== */
         .header {
             background: #fff;
-            padding: 20px 25px;
+            padding: 18px 24px;
             border-radius: 10px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 22px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .header h1 {
-            font-size: 24px;
-            color: #2c3e50;
-        }
-        .header p {
-            color: #888;
-            font-size: 14px;
-            margin-top: 4px;
-        }
+        .header h1 { font-size: 22px; color: #2c3e50; }
+        .header p { color: #888; font-size: 13px; margin-top: 3px; }
 
-        /* ===== TABLE WRAPPER ===== */
+        /* ===== TABLE ===== */
         .table-wrap {
             background: #fff;
             border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: 0 1px 6px rgba(0,0,0,0.05);
             overflow: hidden;
         }
         .table-header {
-            padding: 15px 20px;
-            border-bottom: 1px solid #f0f0f0;
+            padding: 14px 20px;
+            border-bottom: 1px solid #eee;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 10px;
         }
-        .table-header h2 {
-            font-size: 18px;
-            color: #2c3e50;
-        }
+        .table-header h2 { font-size: 17px; color: #2c3e50; }
         .btn-add {
             background: #3498db;
             color: #fff;
             border: none;
             padding: 8px 18px;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.3s;
+            transition: 0.25s;
         }
-        .btn-add:hover {
-            background: #2c3e50;
-        }
+        .btn-add:hover { background: #2c3e50; }
 
-        .table-scroll {
-            overflow-x: auto;
-            padding: 0 20px 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 12px 14px;
-            text-align: left;
-            border-bottom: 1px solid #f0f0f0;
-        }
+        .table-scroll { overflow-x: auto; padding: 0 20px 18px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 11px 13px; text-align: left; border-bottom: 1px solid #f0f0f0; }
         th {
             background: #f8f9fa;
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
             color: #555;
             font-weight: 600;
+            letter-spacing: 0.3px;
         }
-        tr:hover {
-            background: #f8f9fa;
-        }
+        tr:hover { background: #fafbfc; }
 
         .badge {
-            padding: 4px 12px;
+            padding: 3px 12px;
             border-radius: 20px;
             font-size: 11px;
             font-weight: 600;
@@ -448,25 +393,20 @@ $armada_list = Armada::getAll($conn);
         .btn-del {
             background: #e74c3c;
             color: #fff;
-            padding: 4px 12px;
+            padding: 4px 11px;
             border-radius: 4px;
             text-decoration: none;
             font-size: 12px;
-            transition: 0.3s;
+            transition: 0.25s;
         }
-        .btn-del:hover {
-            background: #c0392b;
-        }
+        .btn-del:hover { background: #c0392b; }
 
         .empty {
             text-align: center;
-            padding: 50px 20px;
+            padding: 45px 20px;
             color: #999;
         }
-        .empty .icon {
-            font-size: 48px;
-            margin-bottom: 12px;
-        }
+        .empty .icon { font-size: 44px; margin-bottom: 10px; }
 
         /* ===== MODAL ===== */
         .modal {
@@ -478,24 +418,22 @@ $armada_list = Armada::getAll($conn);
             justify-content: center;
             align-items: center;
         }
-        .modal.open {
-            display: flex;
-        }
+        .modal.open { display: flex; }
         .modal-box {
             background: #fff;
-            padding: 30px;
+            padding: 28px;
             border-radius: 12px;
             width: 92%;
-            max-width: 460px;
+            max-width: 440px;
             max-height: 90vh;
             overflow-y: auto;
             position: relative;
         }
         .modal-box .close {
             position: absolute;
-            right: 20px;
-            top: 15px;
-            font-size: 28px;
+            right: 18px;
+            top: 14px;
+            font-size: 26px;
             cursor: pointer;
             color: #999;
             background: none;
@@ -505,22 +443,21 @@ $armada_list = Armada::getAll($conn);
             color: #2c3e50;
             border-bottom: 3px solid #3498db;
             padding-bottom: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
+            font-size: 19px;
         }
-        .modal-box .group {
-            margin-bottom: 14px;
-        }
+        .modal-box .group { margin-bottom: 13px; }
         .modal-box label {
             display: block;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             color: #333;
             margin-bottom: 4px;
         }
         .modal-box input,
         .modal-box select {
             width: 100%;
-            padding: 10px 12px;
+            padding: 9px 12px;
             border: 2px solid #e0e0e0;
             border-radius: 6px;
             font-size: 14px;
@@ -530,84 +467,56 @@ $armada_list = Armada::getAll($conn);
             border-color: #3498db;
             outline: none;
         }
-        .modal-box .field-group {
-            display: none;
-        }
+        .modal-box .field-group { display: none; }
         .modal-box .btn-submit {
             background: #3498db;
             color: #fff;
             border: none;
-            padding: 12px;
+            padding: 11px;
             border-radius: 6px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             width: 100%;
             cursor: pointer;
-            transition: 0.3s;
-            margin-top: 10px;
+            transition: 0.25s;
+            margin-top: 8px;
         }
-        .modal-box .btn-submit:hover {
-            background: #2c3e50;
-        }
+        .modal-box .btn-submit:hover { background: #2c3e50; }
 
+        /* ===== ALERT ===== */
         .alert {
-            padding: 12px 16px;
+            padding: 11px 16px;
             border-radius: 6px;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             font-weight: 500;
+            font-size: 14px;
         }
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
         /* ===== RESPONSIVE ===== */
-        @media (max-width: 768px) {
-            .sidebar {
-                display: none;
-            }
-            .sidebar.open {
-                display: block;
-                position: fixed;
-                width: 280px;
-                z-index: 1000;
-            }
-            .hamburger {
-                display: block !important;
-            }
-            .main {
-                padding: 15px;
-            }
-        }
         .hamburger {
             display: none;
             background: none;
             border: none;
-            font-size: 28px;
+            font-size: 26px;
             cursor: pointer;
             color: #2c3e50;
-            padding: 5px 10px;
-            float: right;
         }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .sidebar.open {
+                display: block;
+                position: fixed;
+                width: 270px;
+                z-index: 1000;
+            }
+            .hamburger { display: block; }
+            .main { padding: 15px; }
+            .header h1 { font-size: 19px; }
         }
-        .header-left {
-            flex: 1;
-        }
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
+        .header-left { flex: 1; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
     </style>
 </head>
 <body>
@@ -632,6 +541,7 @@ $armada_list = Armada::getAll($conn);
 
 <!-- ===== MAIN ===== -->
 <div class="main">
+
     <!-- HEADER -->
     <div class="header">
         <div class="header-left">
@@ -686,7 +596,7 @@ $armada_list = Armada::getAll($conn);
                                 <td><?= number_format($a['kapasitas_maksimal_kg'], 0, ',', '.') ?> kg</td>
                                 <td><?= $a['status_kelaikan'] == 'Laik' ? '✅ Laik' : '❌ Tidak Laik' ?></td>
                                 <td>
-                                    <a href="?hapus=<?= $a['id_armada'] ?>" class="btn-del" onclick="return confirm('Yakin hapus?')">🗑️ Hapus</a>
+                                    <a href="?hapus=<?= $a['id_armada'] ?>" class="btn-del" onclick="return confirm('Yakin hapus armada ini?')">🗑️ Hapus</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -696,7 +606,7 @@ $armada_list = Armada::getAll($conn);
                 <div class="empty">
                     <div class="icon">📭</div>
                     <p>Belum ada data armada</p>
-                    <p style="font-size:12px; margin-top:5px;">Klik tombol "Tambah Armada Baru" untuk menambahkan</p>
+                    <p style="font-size:12px; margin-top:4px;">Klik tombol "Tambah Armada Baru" untuk menambahkan</p>
                 </div>
             <?php endif; ?>
         </div>
@@ -738,7 +648,7 @@ $armada_list = Armada::getAll($conn);
                 <input type="number" name="biaya_dasar" step="0.01" required placeholder="500000">
             </div>
 
-            <!-- Truk -->
+            <!-- TRUK -->
             <div class="field-group" id="fieldTruk">
                 <div class="group">
                     <label>Jumlah Roda</label>
@@ -750,7 +660,7 @@ $armada_list = Armada::getAll($conn);
                 </div>
             </div>
 
-            <!-- Kapal -->
+            <!-- KAPAL -->
             <div class="field-group" id="fieldKapal">
                 <div class="group">
                     <label>Nama Dermaga</label>
@@ -766,7 +676,7 @@ $armada_list = Armada::getAll($conn);
                 </div>
             </div>
 
-            <!-- Pesawat -->
+            <!-- PESAWAT -->
             <div class="field-group" id="fieldPesawat">
                 <div class="group">
                     <label>Batas Ketinggian (meter)</label>
