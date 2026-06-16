@@ -1,7 +1,6 @@
 <?php
 // armada/index.php
 require_once '../config/koneksi.php';
-require_once 'Armada.php';
 require_once 'TrukDarat.php';
 require_once 'KapalLaut.php';
 require_once 'PesawatKargo.php';
