@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 500; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; }
-        button { background: #ffc107; color: #333; padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; }
+        button { background: #9e9c95; color: #333; padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; }
         .back-link { display: inline-block; margin-bottom: 20px; color: #667eea; text-decoration: none; }
         .message { background: #d4edda; color: #155724; padding: 12px; border-radius: 8px; margin-bottom: 20px; }
         .error { background: #f8d7da; color: #721c24; padding: 12px; border-radius: 8px; margin-bottom: 20px; }
@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <label>Waktu Pembayaran</label>
                 <input type="datetime-local" name="waktu_pembayaran" value="<?= $data['waktu_pembayaran'] ? date('Y-m-d\TH:i', strtotime($data['waktu_pembayaran'])) : '' ?>">
             </div>
-            <button type="submit">💾 Update Data</button>
+            <button type="submit"> Update Data</button>
         </form>
     </div>
 </div>

@@ -43,7 +43,7 @@ $result = $koneksi->query($query);
         }
         /* Header */
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #c6c8d1 0%, #311ec6 100%);
             color: white;
             padding: 25px 30px;
             border-radius: 15px;
@@ -70,11 +70,11 @@ $result = $koneksi->query($query);
             padding: 20px 25px;
             flex: 1;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            border-left: 5px solid #667eea;
+            border-left: 5px solid #595e74;
         }
         .stat-card h3 {
             font-size: 14px;
-            color: #666;
+            color: #070707;
             margin-bottom: 10px;
         }
         .stat-card .number {
@@ -116,14 +116,14 @@ $result = $koneksi->query($query);
         }
         .btn-add {
             padding: 10px 25px;
-            background: #28a745;
+            background: #fefffe;
             color: white;
             text-decoration: none;
             border-radius: 8px;
             font-weight: 500;
         }
         .btn-add:hover {
-            background: #218838;
+            background: #f4f4f4;
         }
         /* Table */
         .table-container {
@@ -202,18 +202,18 @@ $result = $koneksi->query($query);
 <div class="container">
     <!-- Header -->
     <div class="header">
-        <h1>💰 Modul PEMBAYARAN - Ekspedisi Logistik</h1>
+        <h1> Modul PEMBAYARAN - Ekspedisi Logistik</h1>
         <p>Kelola transaksi pembayaran, validasi, dan monitoring status pembayaran</p>
     </div>
 
     <!-- Statistics Cards -->
     <div class="stats-container">
         <div class="stat-card">
-            <h3>💰 Total Transaksi</h3>
+            <h3>Total Transaksi</h3>
             <div class="number"><?= $totalPembayaran ?></div>
         </div>
         <div class="stat-card">
-            <h3>✅ Lunas</h3>
+            <h3> Lunas</h3>
             <div class="number">
                 <?php 
                 $lunas = $koneksi->query("SELECT COUNT(*) as total FROM pembayaran WHERE status_lunas='Lunas'")->fetch_assoc();
@@ -222,7 +222,7 @@ $result = $koneksi->query($query);
             </div>
         </div>
         <div class="stat-card">
-            <h3>⏳ Belum Lunas</h3>
+            <h3> Belum Lunas</h3>
             <div class="number">
                 <?php 
                 $belum = $koneksi->query("SELECT COUNT(*) as total FROM pembayaran WHERE status_lunas='Belum Lunas'")->fetch_assoc();
@@ -296,7 +296,7 @@ $result = $koneksi->query($query);
 
     <!-- Footer Stats -->
     <div class="footer-stats">
-        📊 Menampilkan <?= $result->num_rows ?> dari <?= $totalPembayaran ?> total data pembayaran
+         Menampilkan <?= $result->num_rows ?> dari <?= $totalPembayaran ?> total data pembayaran
     </div>
 </div>
 </body>
