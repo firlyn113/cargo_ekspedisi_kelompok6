@@ -302,12 +302,12 @@ $result = $koneksi->query($query);
         <p>LOGISTIK SYSTEM</p>
     </div>
     <ul>
-        <li><a href="../dashboard.php"><span class="icon">📊</span> Dashboard</a></li>
-        <li><a href="../Armada/index.php"><span class="icon">🚛</span> Armada</a></li>
-        <li><a href="../Kargo/index.php"><span class="icon">📦</span> Kargo</a></li>
-        <li><a href="../Pelanggan/index.php"><span class="icon">👤</span> Pelanggan</a></li>
-        <li><a href="index.php" class="active"><span class="icon">💰</span> Pembayaran</a></li>
-        <li><a href="../Staff/index.php"><span class="icon">👨‍💼</span> Staff</a></li>
+        <li><a href="../dashboard.php"><span class="icon"></span> Dashboard</a></li>
+        <li><a href="../Armada/index.php"><span class="icon"></span> Armada</a></li>
+        <li><a href="../Kargo/index.php"><span class="icon"></span> Kargo</a></li>
+        <li><a href="../Pelanggan/index.php"><span class="icon"></span> Pelanggan</a></li>
+        <li><a href="index.php" class="active"><span class="icon"></span> Pembayaran</a></li>
+        <li><a href="../Staff/index.php"><span class="icon"></span> Staff</a></li>
     </ul>
 </div>
 
