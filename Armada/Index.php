@@ -273,132 +273,318 @@ $armada_list = Armada::getAll($conn);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manajemen Armada - Ekspedisi Logistik</title>
+    <title>Manajemen Armada</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f0f2f5;
-            min-height: 100vh;
             display: flex;
+            min-height: 100vh;
         }
 
         /* ===== SIDEBAR ===== */
         .sidebar {
             width: 250px;
             background: #1a1a2e;
-            color: white;
+            color: #fff;
             height: 100vh;
-            position: fixed;
+            position: sticky;
             top: 0;
-            left: 0;
             overflow-y: auto;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            box-shadow: 2px 0 15px rgba(0,0,0,0.3);
+            flex-shrink: 0;
         }
-
         .sidebar-brand {
-            padding: 25px 20px;
+            padding: 20px;
             text-align: center;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-
-        .sidebar-brand .logo-icon {
+        .sidebar-brand .logo {
             font-size: 40px;
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
         }
-
         .sidebar-brand h2 {
             font-size: 20px;
-            color: white;
+            font-weight: 700;
         }
-
         .sidebar-brand small {
-            color: #aaa;
             font-size: 11px;
+            color: #aaa;
         }
-
         .sidebar-menu {
             padding: 15px 0;
         }
-
-        .sidebar-menu .menu-label {
-            padding: 10px 20px;
-            color: #666;
+        .sidebar-menu .label {
+            padding: 8px 20px;
             font-size: 11px;
             text-transform: uppercase;
+            color: #666;
             letter-spacing: 1px;
-            font-weight: bold;
+            font-weight: 600;
         }
-
         .sidebar-menu a {
             display: flex;
             align-items: center;
-            padding: 12px 20px;
+            padding: 10px 20px;
             color: #ccc;
             text-decoration: none;
-            transition: all 0.3s;
             border-left: 3px solid transparent;
             gap: 12px;
+            transition: 0.3s;
         }
-
         .sidebar-menu a:hover {
             background: rgba(255,255,255,0.05);
-            color: white;
-            border-left-color: #3498db;
+            color: #fff;
         }
-
         .sidebar-menu a.active {
             background: rgba(52, 152, 219, 0.15);
-            color: white;
+            color: #fff;
             border-left-color: #3498db;
         }
-
         .sidebar-menu a .icon {
             font-size: 18px;
             width: 28px;
-            text-align: center;
         }
 
-        .sidebar-menu a .menu-text {
-            font-size: 14px;
-        }
-
-        /* ===== MAIN CONTENT ===== */
-        .main-content {
-            margin-left: 250px;
+        /* ===== MAIN ===== */
+        .main {
             flex: 1;
             padding: 25px;
-            min-height: 100vh;
         }
 
         /* ===== HEADER ===== */
         .header {
-            background: white;
+            background: #fff;
             padding: 20px 25px;
-            border-radius: 12px;
+            border-radius: 10px;
             margin-bottom: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
-
         .header h1 {
-            color: #2c3e50;
             font-size: 24px;
+            color: #2c3e50;
         }
-
         .header p {
             color: #888;
             font-size: 14px;
-            margin-top: 3px;
+            margin-top: 4px;
         }
 
+        /* ===== TABLE WRAPPER ===== */
+        .table-wrap {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        .table-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .table-header h2 {
+            font-size: 18px;
+            color: #2c3e50;
+        }
+        .btn-add {
+            background: #3498db;
+            color: #fff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-add:hover {
+            background: #2c3e50;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            padding: 0 20px 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        th {
+            background: #f8f9fa;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #555;
+            font-weight: 600;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .badge-truk { background: #27ae60; color: #fff; }
+        .badge-kapal { background: #2980b9; color: #fff; }
+        .badge-pesawat { background: #f39c12; color: #fff; }
+
+        .btn-del {
+            background: #e74c3c;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 12px;
+            transition: 0.3s;
+        }
+        .btn-del:hover {
+            background: #c0392b;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 50px 20px;
+            color: #999;
+        }
+        .empty .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        /* ===== MODAL ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.open {
+            display: flex;
+        }
+        .modal-box {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            width: 92%;
+            max-width: 460px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .modal-box .close {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            background: none;
+            border: none;
+        }
+        .modal-box h2 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .modal-box .group {
+            margin-bottom: 14px;
+        }
+        .modal-box label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .modal-box input,
+        .modal-box select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .modal-box input:focus,
+        .modal-box select:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        .modal-box .field-group {
+            display: none;
+        }
+        .modal-box .btn-submit {
+            background: #3498db;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        .modal-box .btn-submit:hover {
+            background: #2c3e50;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .sidebar.open {
+                display: block;
+                position: fixed;
+                width: 280px;
+                z-index: 1000;
+            }
+            .hamburger {
+                display: block !important;
+            }
+            .main {
+                padding: 15px;
+            }
+        }
         .hamburger {
             display: none;
             background: none;
@@ -409,529 +595,221 @@ $armada_list = Armada::getAll($conn);
             padding: 5px 10px;
             float: right;
         }
-
-        /* ===== TABLE ===== */
-        .table-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            overflow: hidden;
-        }
-
-        .table-header {
-            padding: 15px 20px;
-            border-bottom: 1px solid #f0f0f0;
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
         }
-
-        .table-header h2 {
-            font-size: 18px;
-            color: #2c3e50;
+        .header-left {
+            flex: 1;
         }
-
-        .btn-add {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .btn-add:hover {
-            background: #2c3e50;
-            transform: scale(1.02);
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-            padding: 0 20px 20px 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #555;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        tr:hover {
-            background: #f8f9fa;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .badge-truk {
-            background: #27ae60;
-            color: white;
-        }
-
-        .badge-kapal {
-            background: #2980b9;
-            color: white;
-        }
-
-        .badge-pesawat {
-            background: #f39c12;
-            color: white;
-        }
-
-        .btn-hapus {
-            background: #e74c3c;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 12px;
-            transition: all 0.3s;
-            display: inline-block;
-        }
-
-        .btn-hapus:hover {
-            background: #c0392b;
-            transform: scale(1.05);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 50px 20px;
-            color: #999;
-        }
-
-        .empty-state .empty-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-
-        /* ===== MODAL ===== */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal.open {
+        .header-right {
             display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .modal-content .close-btn {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            font-size: 28px;
-            cursor: pointer;
-            color: #999;
-            background: none;
-            border: none;
-        }
-
-        .modal-content h2 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 10px;
-        }
-
-        .modal-content .form-group {
-            margin-bottom: 15px;
-        }
-
-        .modal-content label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #333;
-            font-size: 14px;
-        }
-
-        .modal-content input,
-        .modal-content select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .modal-content input:focus,
-        .modal-content select:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-
-        .modal-content button[type="submit"] {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            width: 100%;
-            transition: all 0.3s;
-        }
-
-        .modal-content button[type="submit"]:hover {
-            background: #2c3e50;
-        }
-
-        .modal-content .field-group {
-            display: none;
-        }
-
-        /* ===== ALERT ===== */
-        .alert {
-            padding: 12px 18px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-weight: 500;
-        }
-
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 768px) {
-            .sidebar {
-                left: -100%;
-                width: 280px;
-            }
-
-            .sidebar.open {
-                left: 0;
-            }
-
-            .main-content {
-                margin-left: 0;
-                padding: 15px;
-            }
-
-            .hamburger {
-                display: block;
-            }
-
-            .header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-
-            .header h1 {
-                font-size: 20px;
-            }
-        }
-
-        .sidebar::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        .sidebar::-webkit-scrollbar-track {
-            background: #1a1a2e;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #3498db;
-            border-radius: 10px;
+            align-items: center;
+            gap: 15px;
         }
     </style>
 </head>
 <body>
 
-    <!-- ===== SIDEBAR ===== -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-brand">
-            <span class="logo-icon">🚚</span>
-            <h2>Cargo Ekspedisi</h2>
-            <small>Logistik System</small>
-        </div>
-        <div class="sidebar-menu">
-            <div class="menu-label">Menu Utama</div>
-            <a href="../Dashboard.php">
-                <span class="icon">📊</span>
-                <span class="menu-text">Dashboard</span>
-            </a>
-            <a href="Index.php" class="active">
-                <span class="icon">🚛</span>
-                <span class="menu-text">Armada</span>
-            </a>
-            <a href="../Cargo/Index.php">
-                <span class="icon">📦</span>
-                <span class="menu-text">Cargo</span>
-            </a>
-            <a href="../Pelanggan/Index.php">
-                <span class="icon">👤</span>
-                <span class="menu-text">Pelanggan</span>
-            </a>
-            <a href="../Pembayaran/Index.php">
-                <span class="icon">💳</span>
-                <span class="menu-text">Pembayaran</span>
-            </a>
-            <a href="../Staff/Index.php">
-                <span class="icon">👨‍💼</span>
-                <span class="menu-text">Staff</span>
-            </a>
-        </div>
+<!-- ===== SIDEBAR ===== -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <span class="logo">🚚</span>
+        <h2>Cargo Ekspedisi</h2>
+        <small>Logistik System</small>
     </div>
+    <div class="sidebar-menu">
+        <div class="label">Menu Utama</div>
+        <a href="../Dashboard.php"><span class="icon">📊</span> Dashboard</a>
+        <a href="Index.php" class="active"><span class="icon">🚛</span> Armada</a>
+        <a href="../Cargo/Index.php"><span class="icon">📦</span> Cargo</a>
+        <a href="../Pelanggan/Index.php"><span class="icon">👤</span> Pelanggan</a>
+        <a href="../Pembayaran/Index.php"><span class="icon">💳</span> Pembayaran</a>
+        <a href="../Staff/Index.php"><span class="icon">👨‍💼</span> Staff</a>
+    </div>
+</div>
 
-    <!-- ===== MAIN CONTENT ===== -->
-    <div class="main-content">
-        <!-- HEADER -->
-        <div class="header">
-            <div>
-                <h1>🚛 Manajemen Armada</h1>
-                <p>Kelola data armada - Truk Darat | Kapal Laut | Pesawat Kargo</p>
-            </div>
+<!-- ===== MAIN ===== -->
+<div class="main">
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <h1>🚛 Manajemen Armada</h1>
+            <p>Kelola data armada - Truk Darat | Kapal Laut | Pesawat Kargo</p>
+        </div>
+        <div class="header-right">
             <button class="hamburger" id="hamburgerBtn">☰</button>
         </div>
+    </div>
 
-        <!-- ALERT -->
-        <?php if ($message): ?>
-            <div class="alert alert-success"><?php echo htmlspecialchars($message); ?></div>
-        <?php endif; ?>
-        <?php if ($error): ?>
-            <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
-        <?php endif; ?>
+    <!-- ALERT -->
+    <?php if ($message): ?>
+        <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
+    <?php endif; ?>
+    <?php if ($error): ?>
+        <div class="alert alert-error"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
 
-        <!-- TABLE -->
-        <div class="table-container">
-            <div class="table-header">
-                <h2>📋 Daftar Armada</h2>
-                <button class="btn-add" onclick="openModal()">➕ Tambah Armada Baru</button>
-            </div>
-            <div class="table-wrapper">
-                <?php if (!empty($armada_list)): ?>
-                    <table>
-                        <thead>
+    <!-- TABLE -->
+    <div class="table-wrap">
+        <div class="table-header">
+            <h2>📋 Daftar Armada</h2>
+            <button class="btn-add" onclick="openModal()">➕ Tambah Armada Baru</button>
+        </div>
+        <div class="table-scroll">
+            <?php if (!empty($armada_list)): ?>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Kode</th>
+                            <th>Nama Armada</th>
+                            <th>Jenis</th>
+                            <th>Kapasitas</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($armada_list as $a): ?>
                             <tr>
-                                <th>Kode</th>
-                                <th>Nama Armada</th>
-                                <th>Jenis</th>
-                                <th>Kapasitas</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
+                                <td><strong><?= htmlspecialchars($a['id_armada_code']) ?></strong></td>
+                                <td><?= htmlspecialchars($a['id_armada_code']) ?></td>
+                                <td>
+                                    <span class="badge 
+                                        <?= $a['jenis_armada'] == 'TrukDarat' ? 'badge-truk' : 
+                                            ($a['jenis_armada'] == 'KapalLaut' ? 'badge-kapal' : 'badge-pesawat') ?>">
+                                        <?= $a['jenis_armada'] == 'TrukDarat' ? '🚛 Truk Darat' : 
+                                            ($a['jenis_armada'] == 'KapalLaut' ? '⛴️ Kapal Laut' : '✈️ Pesawat Kargo') ?>
+                                    </span>
+                                </td>
+                                <td><?= number_format($a['kapasitas_maksimal_kg'], 0, ',', '.') ?> kg</td>
+                                <td><?= $a['status_kelaikan'] == 'Laik' ? '✅ Laik' : '❌ Tidak Laik' ?></td>
+                                <td>
+                                    <a href="?hapus=<?= $a['id_armada'] ?>" class="btn-del" onclick="return confirm('Yakin hapus?')">🗑️ Hapus</a>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($armada_list as $a): ?>
-                                <tr>
-                                    <td><strong><?php echo htmlspecialchars($a['id_armada_code']); ?></strong></td>
-                                    <td><?php echo htmlspecialchars($a['id_armada_code']); ?></td>
-                                    <td>
-                                        <span class="badge <?php 
-                                            echo $a['jenis_armada'] == 'TrukDarat' ? 'badge-truk' : 
-                                                ($a['jenis_armada'] == 'KapalLaut' ? 'badge-kapal' : 'badge-pesawat'); 
-                                        ?>">
-                                            <?php 
-                                                echo $a['jenis_armada'] == 'TrukDarat' ? '🚛 Truk Darat' : 
-                                                    ($a['jenis_armada'] == 'KapalLaut' ? '⛴️ Kapal Laut' : '✈️ Pesawat Kargo'); 
-                                            ?>
-                                        </span>
-                                    </td>
-                                    <td><?php echo number_format($a['kapasitas_maksimal_kg'], 0, ',', '.'); ?> kg</td>
-                                    <td>
-                                        <?php echo $a['status_kelaikan'] == 'Laik' ? '✅ Laik' : '❌ Tidak Laik'; ?>
-                                    </td>
-                                    <td>
-                                        <a href="?hapus=<?php echo $a['id_armada']; ?>" class="btn-hapus" onclick="return confirm('Yakin hapus armada ini?')">🗑️ Hapus</a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                <?php else: ?>
-                    <div class="empty-state">
-                        <div class="empty-icon">📭</div>
-                        <p>Belum ada data armada</p>
-                        <p style="font-size:12px; margin-top:5px;">Klik tombol "Tambah Armada Baru" untuk menambahkan</p>
-                    </div>
-                <?php endif; ?>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <div class="empty">
+                    <div class="icon">📭</div>
+                    <p>Belum ada data armada</p>
+                    <p style="font-size:12px; margin-top:5px;">Klik tombol "Tambah Armada Baru" untuk menambahkan</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div class="modal" id="modalArmada">
+    <div class="modal-box">
+        <button class="close" onclick="closeModal()">×</button>
+        <h2>➕ Tambah Armada Baru</h2>
+        <form method="POST">
+            <div class="group">
+                <label>Jenis Armada</label>
+                <select name="jenis_armada" id="jenisArmada" required>
+                    <option value="">-- Pilih Jenis Armada --</option>
+                    <option value="TrukDarat">🚛 Truk Darat</option>
+                    <option value="KapalLaut">⛴️ Kapal Laut</option>
+                    <option value="PesawatKargo">✈️ Pesawat Kargo</option>
+                </select>
             </div>
-        </div>
-    </div>
+            <div class="group">
+                <label>Kode Armada</label>
+                <input type="text" name="id_armada_code" required placeholder="TRK001">
+            </div>
+            <div class="group">
+                <label>Kapasitas Maksimal (kg)</label>
+                <input type="number" name="kapasitas" step="0.01" required placeholder="1000">
+            </div>
+            <div class="group">
+                <label>Status Kelaikan</label>
+                <select name="status" required>
+                    <option value="Laik">✅ Laik</option>
+                    <option value="Tidak Laik">❌ Tidak Laik</option>
+                </select>
+            </div>
+            <div class="group">
+                <label>Biaya Operasional Dasar</label>
+                <input type="number" name="biaya_dasar" step="0.01" required placeholder="500000">
+            </div>
 
-    <!-- ===== MODAL TAMBAH ARMADA ===== -->
-    <div class="modal" id="modalArmada">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeModal()">×</button>
-            <h2>➕ Tambah Armada Baru</h2>
-            <form method="POST">
-                <div class="form-group">
-                    <label>Jenis Armada</label>
-                    <select name="jenis_armada" id="jenisArmada" required>
-                        <option value="">-- Pilih Jenis Armada --</option>
-                        <option value="TrukDarat">🚛 Truk Darat</option>
-                        <option value="KapalLaut">⛴️ Kapal Laut</option>
-                        <option value="PesawatKargo">✈️ Pesawat Kargo</option>
+            <!-- Truk -->
+            <div class="field-group" id="fieldTruk">
+                <div class="group">
+                    <label>Jumlah Roda</label>
+                    <input type="number" name="jumlah_roda" value="6">
+                </div>
+                <div class="group">
+                    <label>Rute Tol</label>
+                    <input type="text" name="rute_tol" placeholder="Tol Dalam Kota">
+                </div>
+            </div>
+
+            <!-- Kapal -->
+            <div class="field-group" id="fieldKapal">
+                <div class="group">
+                    <label>Nama Dermaga</label>
+                    <input type="text" name="nama_dermaga" placeholder="Tanjung Priok">
+                </div>
+                <div class="group">
+                    <label>Jenis Kontainer</label>
+                    <select name="jenis_kontainer">
+                        <option value="Standard">Standard</option>
+                        <option value="Refrigerated">Refrigerated</option>
+                        <option value="Open Top">Open Top</option>
                     </select>
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label>Kode Armada</label>
-                    <input type="text" name="id_armada_code" required placeholder="TRK001">
+            <!-- Pesawat -->
+            <div class="field-group" id="fieldPesawat">
+                <div class="group">
+                    <label>Batas Ketinggian (meter)</label>
+                    <input type="number" name="batas_ketinggian" value="10000">
                 </div>
-
-                <div class="form-group">
-                    <label>Kapasitas Maksimal (kg)</label>
-                    <input type="number" name="kapasitas" step="0.01" required placeholder="1000">
+                <div class="group">
+                    <label>Izin Penerbangan Khusus</label>
+                    <input type="text" name="izin_penerbangan" placeholder="Cargo Malam">
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label>Status Kelaikan</label>
-                    <select name="status" required>
-                        <option value="Laik">✅ Laik</option>
-                        <option value="Tidak Laik">❌ Tidak Laik</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Biaya Operasional Dasar</label>
-                    <input type="number" name="biaya_dasar" step="0.01" required placeholder="500000">
-                </div>
-
-                <!-- Field Truk Darat -->
-                <div class="field-group" id="fieldTruk">
-                    <div class="form-group">
-                        <label>Jumlah Roda</label>
-                        <input type="number" name="jumlah_roda" value="6">
-                    </div>
-                    <div class="form-group">
-                        <label>Rute Tol</label>
-                        <input type="text" name="rute_tol" placeholder="Tol Dalam Kota">
-                    </div>
-                </div>
-
-                <!-- Field Kapal Laut -->
-                <div class="field-group" id="fieldKapal">
-                    <div class="form-group">
-                        <label>Nama Dermaga</label>
-                        <input type="text" name="nama_dermaga" placeholder="Tanjung Priok">
-                    </div>
-                    <div class="form-group">
-                        <label>Jenis Kontainer</label>
-                        <select name="jenis_kontainer">
-                            <option value="Standard">Standard</option>
-                            <option value="Refrigerated">Refrigerated</option>
-                            <option value="Open Top">Open Top</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Field Pesawat Kargo -->
-                <div class="field-group" id="fieldPesawat">
-                    <div class="form-group">
-                        <label>Batas Ketinggian (meter)</label>
-                        <input type="number" name="batas_ketinggian" value="10000">
-                    </div>
-                    <div class="form-group">
-                        <label>Izin Penerbangan Khusus</label>
-                        <input type="text" name="izin_penerbangan" placeholder="Cargo Malam">
-                    </div>
-                </div>
-
-                <button type="submit">💾 Simpan Armada</button>
-            </form>
-        </div>
+            <button class="btn-submit" type="submit">💾 Simpan Armada</button>
+        </form>
     </div>
+</div>
 
-    <script>
-        // HAMBURGER
-        document.getElementById('hamburgerBtn').addEventListener('click', function() {
-            document.getElementById('sidebar').classList.toggle('open');
-        });
+<script>
+    // HAMBURGER
+    document.getElementById('hamburgerBtn').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.toggle('open');
+    });
 
-        document.addEventListener('click', function(event) {
-            const sidebar = document.getElementById('sidebar');
-            const hamburger = document.getElementById('hamburgerBtn');
-            if (!sidebar.contains(event.target) && !hamburger.contains(event.target) && window.innerWidth <= 768) {
-                sidebar.classList.remove('open');
-            }
-        });
+    // MODAL
+    function openModal() {
+        document.getElementById('modalArmada').classList.add('open');
+    }
+    function closeModal() {
+        document.getElementById('modalArmada').classList.remove('open');
+    }
+    document.getElementById('modalArmada').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
 
-        // MODAL
-        function openModal() {
-            document.getElementById('modalArmada').classList.add('open');
-        }
-
-        function closeModal() {
-            document.getElementById('modalArmada').classList.remove('open');
-        }
-
-        // Toggle field berdasarkan jenis armada
-        document.getElementById('jenisArmada').addEventListener('change', function() {
-            document.getElementById('fieldTruk').style.display = 'none';
-            document.getElementById('fieldKapal').style.display = 'none';
-            document.getElementById('fieldPesawat').style.display = 'none';
-
-            if (this.value === 'TrukDarat') {
-                document.getElementById('fieldTruk').style.display = 'block';
-            } else if (this.value === 'KapalLaut') {
-                document.getElementById('fieldKapal').style.display = 'block';
-            } else if (this.value === 'PesawatKargo') {
-                document.getElementById('fieldPesawat').style.display = 'block';
-            }
-        });
-
-        // Close modal klik di luar
-        document.getElementById('modalArmada').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
-    </script>
+    // TOGGLE FIELD
+    document.getElementById('jenisArmada').addEventListener('change', function() {
+        document.getElementById('fieldTruk').style.display = 'none';
+        document.getElementById('fieldKapal').style.display = 'none';
+        document.getElementById('fieldPesawat').style.display = 'none';
+        if (this.value === 'TrukDarat') document.getElementById('fieldTruk').style.display = 'block';
+        else if (this.value === 'KapalLaut') document.getElementById('fieldKapal').style.display = 'block';
+        else if (this.value === 'PesawatKargo') document.getElementById('fieldPesawat').style.display = 'block';
+    });
+</script>
 
 </body>
 </html>
