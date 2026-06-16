@@ -40,21 +40,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         $message = "Kapasitas harus lebih dari 0 Kg!";
         $messageType = "danger";
     } else {
-        // Query insert dengan prepared statement untuk keamanan
-        $sql = "INSERT INTO armada (kode_armada, nama_armada, jenis_armada, sub_jenis, kapasitas, status, lokasi) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+        // Cek apakah kode armada sudah ada
+        $checkSql = "SELECT id_armada FROM armada WHERE kode_armada = '$kode'";
+        $checkResult = $koneksi->query($checkSql);
         
-        $stmt = $koneksi->prepare($sql);
-        $stmt->bind_param("ssssiss", $kode, $nama, $jenis, $sub_jenis, $kapasitas, $status, $lokasi);
-        
-        if ($stmt->execute()) {
-            $message = "Armada berhasil ditambahkan!";
-            $messageType = "success";
-        } else {
-            $message = "Gagal menambahkan armada: " . $stmt->error;
+        if ($checkResult->num_rows > 0) {
+            $message = "Kode armada '$kode' sudah terdaftar!";
             $messageType = "danger";
+        } else {
+            // Query insert
+            $sql = "INSERT INTO armada (kode_armada, nama_armada, jenis_armada, sub_jenis, kapasitas, status, lokasi) 
+                    VALUES ('$kode', '$nama', '$jenis', '$sub_jenis', '$kapasitas', '$status', '$lokasi')";
+            
+            if ($koneksi->query($sql)) {
+                $message = "Armada berhasil ditambahkan!";
+                $messageType = "success";
+            } else {
+                $message = "Gagal menambahkan armada: " . $koneksi->error;
+                $messageType = "danger";
+            }
         }
-        $stmt->close();
     }
 }
 
@@ -381,7 +386,7 @@ $result = $koneksi->query($sql);
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Kapasitas (Kg)</label>
-                            <input type="number" class="form-control" name="kapasitas" id="kapasitas" required min="1" placeholder="Kapasitas dalam Kg" onchange="validateKapasitas(this)">
+                            <input type="number" class="form-control" name="kapasitas" id="kapasitas" required min="1" placeholder="Kapasitas dalam Kg">
                             <small class="text-muted">Minimal 1 Kg</small>
                         </div>
                         <div class="mb-3">
@@ -416,7 +421,7 @@ $result = $koneksi->query($sql);
     <div class="modal fade show" id="editArmadaModal" tabindex="-1" style="display:block; background: rgba(0,0,0,0.5);">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form method="POST" action="update_armada.php" onsubmit="return validateEditForm()">
+                <form method="POST" action="update_armada.php">
                     <div class="modal-header">
                         <h5 class="modal-title">Edit Armada</h5>
                         <a href="index.php" class="btn-close"></a>
@@ -433,7 +438,7 @@ $result = $koneksi->query($sql);
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Jenis Armada</label>
-                            <select class="form-select" name="jenis_armada" id="editJenisArmada" required>
+                            <select class="form-select" name="jenis_armada" required>
                                 <option value="Darat" <?= $editData['jenis_armada'] == 'Darat' ? 'selected' : '' ?>>🚛 Darat</option>
                                 <option value="Laut" <?= $editData['jenis_armada'] == 'Laut' ? 'selected' : '' ?>>🚢 Laut</option>
                                 <option value="Udara" <?= $editData['jenis_armada'] == 'Udara' ? 'selected' : '' ?>>✈️ Udara</option>
@@ -441,7 +446,7 @@ $result = $koneksi->query($sql);
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Sub Jenis Armada</label>
-                            <select class="form-select" name="sub_jenis_armada" id="editSubJenisArmada" required>
+                            <select class="form-select" name="sub_jenis_armada" required>
                                 <option value="Truk Darat" <?= $editData['sub_jenis'] == 'Truk Darat' ? 'selected' : '' ?>>🚛 Truk Darat</option>
                                 <option value="Kapal Laut" <?= $editData['sub_jenis'] == 'Kapal Laut' ? 'selected' : '' ?>>🚢 Kapal Laut</option>
                                 <option value="Pesawat Kargo" <?= $editData['sub_jenis'] == 'Pesawat Kargo' ? 'selected' : '' ?>>✈️ Pesawat Kargo</option>
@@ -449,7 +454,7 @@ $result = $koneksi->query($sql);
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Kapasitas (Kg)</label>
-                            <input type="number" class="form-control" name="kapasitas" id="editKapasitas" value="<?= $editData['kapasitas'] ?>" required min="1" onchange="validateKapasitasEdit(this)">
+                            <input type="number" class="form-control" name="kapasitas" value="<?= $editData['kapasitas'] ?>" required min="1">
                             <small class="text-muted">Minimal 1 Kg</small>
                         </div>
                         <div class="mb-3">
@@ -492,34 +497,8 @@ $result = $koneksi->query($sql);
             }
         }
 
-        function validateKapasitas(input) {
-            if (input.value <= 0) {
-                input.setCustomValidity('Kapasitas harus lebih dari 0 Kg');
-            } else {
-                input.setCustomValidity('');
-            }
-        }
-
-        function validateKapasitasEdit(input) {
-            if (input.value <= 0) {
-                input.setCustomValidity('Kapasitas harus lebih dari 0 Kg');
-            } else {
-                input.setCustomValidity('');
-            }
-        }
-
         function validateForm() {
             const kapasitas = document.getElementById('kapasitas');
-            if (kapasitas.value <= 0) {
-                alert('Kapasitas harus lebih dari 0 Kg!');
-                kapasitas.focus();
-                return false;
-            }
-            return true;
-        }
-
-        function validateEditForm() {
-            const kapasitas = document.getElementById('editKapasitas');
             if (kapasitas.value <= 0) {
                 alert('Kapasitas harus lebih dari 0 Kg!');
                 kapasitas.focus();
