@@ -30,12 +30,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     $kode = $_POST['kode_armada'];
     $nama = $_POST['nama_armada'];
     $jenis = $_POST['jenis_armada'];
+    $sub_jenis = $_POST['sub_jenis_armada'];
     $kapasitas = $_POST['kapasitas'];
     $status = $_POST['status'];
     $lokasi = $_POST['lokasi'];
     
-    $sql = "INSERT INTO armada (kode_armada, nama_armada, jenis_armada, kapasitas, status, lokasi) 
-            VALUES ('$kode', '$nama', '$jenis', '$kapasitas', '$status', '$lokasi')";
+    $sql = "INSERT INTO armada (kode_armada, nama_armada, jenis_armada, sub_jenis, kapasitas, status, lokasi) 
+            VALUES ('$kode', '$nama', '$jenis', '$sub_jenis', '$kapasitas', '$status', '$lokasi')";
     
     if ($koneksi->query($sql)) {
         $message = "Armada berhasil ditambahkan!";
@@ -49,6 +50,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 // Get all armada
 $sql = "SELECT * FROM armada ORDER BY created_at DESC";
 $result = $koneksi->query($sql);
+
+// Mapping sub_jenis ke icon
+$subJenisIcon = [
+    'Truk Darat' => '🚛',
+    'Kapal Laut' => '🚢',
+    'Pesawat Kargo' => '✈️'
+];
 ?>
 
 <!DOCTYPE html>
@@ -218,6 +226,11 @@ $result = $koneksi->query($sql);
             background-color: #e74c3c;
             color: white;
         }
+
+        .sub-jenis-icon {
+            font-size: 1.2rem;
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
@@ -279,7 +292,7 @@ $result = $koneksi->query($sql);
                                     <tr>
                                         <th>Kode</th>
                                         <th>Nama Armada</th>
-                                        <th>Jenis</th>
+                                        <th>Jenis Armada</th>
                                         <th>Kapasitas (Kg)</th>
                                         <th>Status</th>
                                         <th>Lokasi</th>
@@ -290,17 +303,25 @@ $result = $koneksi->query($sql);
                                     <?php if ($result && $result->num_rows > 0): ?>
                                         <?php while ($row = $result->fetch_assoc()): ?>
                                         <tr>
-                                            <td><?= htmlspecialchars($row['kode_armada']) ?></td>
+                                            <td><strong><?= htmlspecialchars($row['kode_armada']) ?></strong></td>
                                             <td><?= htmlspecialchars($row['nama_armada']) ?></td>
                                             <td>
                                                 <?php
                                                 $jenisClass = 'badge-secondary';
-                                                if ($row['jenis_armada'] == 'Darat') $jenisClass = 'badge-darat';
-                                                else if ($row['jenis_armada'] == 'Laut') $jenisClass = 'badge-laut';
-                                                else if ($row['jenis_armada'] == 'Udara') $jenisClass = 'badge-udara';
+                                                $icon = '';
+                                                if ($row['jenis_armada'] == 'Darat') {
+                                                    $jenisClass = 'badge-darat';
+                                                    $icon = '🚛';
+                                                } else if ($row['jenis_armada'] == 'Laut') {
+                                                    $jenisClass = 'badge-laut';
+                                                    $icon = '🚢';
+                                                } else if ($row['jenis_armada'] == 'Udara') {
+                                                    $jenisClass = 'badge-udara';
+                                                    $icon = '✈️';
+                                                }
                                                 ?>
-                                                <span class="badge <?= $jenisClass ?>">
-                                                    <?= htmlspecialchars($row['jenis_armada']) ?>
+                                                <span class="badge <?= $jenisClass ?>" style="font-size:0.9rem;">
+                                                    <?= $icon ?> <?= htmlspecialchars($row['sub_jenis']) ?>
                                                 </span>
                                             </td>
                                             <td><?= number_format($row['kapasitas'], 0, ',', '.') ?></td>
@@ -365,11 +386,22 @@ $result = $koneksi->query($sql);
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Jenis Armada</label>
-                            <select class="form-select" name="jenis_armada" required>
+                            <select class="form-select" name="jenis_armada" id="jenisArmada" required onchange="updateSubJenis()">
+                                <option value="">Pilih Jenis Armada</option>
                                 <option value="Darat">🚛 Darat</option>
                                 <option value="Laut">🚢 Laut</option>
                                 <option value="Udara">✈️ Udara</option>
                             </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Sub Jenis Armada</label>
+                            <select class="form-select" name="sub_jenis_armada" id="subJenisArmada" required>
+                                <option value="">Pilih Sub Jenis</option>
+                                <option value="Truk Darat">🚛 Truk Darat</option>
+                                <option value="Kapal Laut">🚢 Kapal Laut</option>
+                                <option value="Pesawat Kargo">✈️ Pesawat Kargo</option>
+                            </select>
+                            <small class="text-muted">Pilih jenis armada terlebih dahulu untuk memfilter sub jenis</small>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Kapasitas (Kg)</label>
@@ -424,10 +456,18 @@ $result = $koneksi->query($sql);
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Jenis Armada</label>
-                            <select class="form-select" name="jenis_armada" required>
+                            <select class="form-select" name="jenis_armada" id="editJenisArmada" required>
                                 <option value="Darat" <?= $editData['jenis_armada'] == 'Darat' ? 'selected' : '' ?>>🚛 Darat</option>
                                 <option value="Laut" <?= $editData['jenis_armada'] == 'Laut' ? 'selected' : '' ?>>🚢 Laut</option>
                                 <option value="Udara" <?= $editData['jenis_armada'] == 'Udara' ? 'selected' : '' ?>>✈️ Udara</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Sub Jenis Armada</label>
+                            <select class="form-select" name="sub_jenis_armada" id="editSubJenisArmada" required>
+                                <option value="Truk Darat" <?= $editData['sub_jenis'] == 'Truk Darat' ? 'selected' : '' ?>>🚛 Truk Darat</option>
+                                <option value="Kapal Laut" <?= $editData['sub_jenis'] == 'Kapal Laut' ? 'selected' : '' ?>>🚢 Kapal Laut</option>
+                                <option value="Pesawat Kargo" <?= $editData['sub_jenis'] == 'Pesawat Kargo' ? 'selected' : '' ?>>✈️ Pesawat Kargo</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -458,5 +498,23 @@ $result = $koneksi->query($sql);
     <?php endif; ?>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function updateSubJenis() {
+            const jenis = document.getElementById('jenisArmada').value;
+            const subSelect = document.getElementById('subJenisArmada');
+            
+            // Clear options
+            subSelect.innerHTML = '<option value="">Pilih Sub Jenis</option>';
+            
+            // Add options based on jenis
+            if (jenis === 'Darat') {
+                subSelect.innerHTML += '<option value="Truk Darat">🚛 Truk Darat</option>';
+            } else if (jenis === 'Laut') {
+                subSelect.innerHTML += '<option value="Kapal Laut">🚢 Kapal Laut</option>';
+            } else if (jenis === 'Udara') {
+                subSelect.innerHTML += '<option value="Pesawat Kargo">✈️ Pesawat Kargo</option>';
+            }
+        }
+    </script>
 </body>
 </html>
