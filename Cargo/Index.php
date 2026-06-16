@@ -6,15 +6,14 @@
 
 session_start();
 require_once '../config/koneksi.php';
+
+// Inisialisasi koneksi dari class Database
+$db = new Database();
+$koneksi = $db->getConnection();
+
 require_once 'KargoReguler.php';
 require_once 'KargoBahanKimia.php';
 require_once 'KargoPecahBelah.php';
-
-$message = '';
-if(isset($_SESSION['kargo_message'])) {
-    $message = $_SESSION['kargo_message'];
-    unset($_SESSION['kargo_message']);
-}
 
 // Ambil semua data kargo
 $sql = "SELECT * FROM kargo ORDER BY created_at DESC";
