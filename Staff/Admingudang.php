@@ -224,25 +224,26 @@ class AdminGudang extends StaffLogistik {
      * Simpan data AdminGudang ke database
      */
     public function save() {
-        $sql = "INSERT INTO staff (id_staff_code, nama_lengkap, gaji_pokok, jam_kerja, jenis_staff, shift_kerja, zona_gudang) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
-        
-        $stmt = $this->getConn()->prepare($sql);
-        $jenisStaff = $this->getJenisStaff();
-        $gajiPokok = $this->getGajiPokok();
-        $jamKerja = $this->getJamKerja();
-        
-        $stmt->bind_param("ssdsss", 
-            $this->getIdStaffCode(),
-            $this->getNamaLengkap(),
-            $gajiPokok,
-            $jamKerja,
-            $jenisStaff,
-            $this->shiftKerja,
-            $this->zonaGudang
-        );
-        
-        return $stmt->execute();
-    }
+    $sql = "INSERT INTO staff (id_staff_code, nama_lengkap, gaji_pokok, jam_kerja, jenis_staff, shift_kerja, zona_gudang) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)";
+    
+    $stmt = $this->getConn()->prepare($sql);
+    $jenisStaff = $this->getJenisStaff();
+    $gajiPokok = $this->getGajiPokok();
+    $jamKerja = $this->getJamKerja();
+    
+    // ✅ Langsung tulis tipe data tanpa fungsi
+    $stmt->bind_param("ssdssss", 
+        $this->getIdStaffCode(),
+        $this->getNamaLengkap(),
+        $gajiPokok,
+        $jamKerja,
+        $jenisStaff,
+        $this->shiftKerja,
+        $this->zonaGudang
+    );
+    
+    return $stmt->execute();
+}
 }
 ?>
