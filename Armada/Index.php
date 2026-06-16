@@ -1,5 +1,5 @@
 <?php
-// Armada/Index.php - FINAL BENERAN
+// Armada/Index.php - TAMPILAN PERSIS PELANGGAN
 $host = "localhost";
 $user = "root";
 $pass = "";
@@ -253,7 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     
     if ($armada && $armada->simpan()) {
-        $message = "✅ Armada " . $jenis . " berhasil ditambahkan!";
+        $message = "✅ Armada berhasil ditambahkan!";
         header("Location: Index.php?msg=" . urlencode($message));
         exit();
     } else {
@@ -275,14 +275,11 @@ $armada_list = Armada::getAll($conn);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen Armada - Ekspedisi Logistik</title>
     <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --danger-color: #e74c3c;
-            --sidebar-width: 250px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -293,7 +290,7 @@ $armada_list = Armada::getAll($conn);
 
         /* ===== SIDEBAR ===== */
         .sidebar {
-            width: var(--sidebar-width);
+            width: 250px;
             background: #1a1a2e;
             color: white;
             height: 100vh;
@@ -312,13 +309,35 @@ $armada_list = Armada::getAll($conn);
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
-        .sidebar-brand .logo-icon { font-size: 40px; display: block; margin-bottom: 8px; }
-        .sidebar-brand h2 { font-size: 20px; color: white; }
-        .sidebar-brand small { color: #aaa; font-size: 11px; }
+        .sidebar-brand .logo-icon {
+            font-size: 40px;
+            display: block;
+            margin-bottom: 8px;
+        }
 
-        .sidebar-menu { padding: 15px 0; }
-        .sidebar-menu .menu-label { padding: 10px 20px; color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
-        
+        .sidebar-brand h2 {
+            font-size: 20px;
+            color: white;
+        }
+
+        .sidebar-brand small {
+            color: #aaa;
+            font-size: 11px;
+        }
+
+        .sidebar-menu {
+            padding: 15px 0;
+        }
+
+        .sidebar-menu .menu-label {
+            padding: 10px 20px;
+            color: #666;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
         .sidebar-menu a {
             display: flex;
             align-items: center;
@@ -329,14 +348,32 @@ $armada_list = Armada::getAll($conn);
             border-left: 3px solid transparent;
             gap: 12px;
         }
-        .sidebar-menu a:hover { background: rgba(255,255,255,0.05); color: white; border-left-color: var(--secondary-color); }
-        .sidebar-menu a.active { background: rgba(52, 152, 219, 0.15); color: white; border-left-color: var(--secondary-color); }
-        .sidebar-menu a .icon { font-size: 18px; width: 28px; text-align: center; }
-        .sidebar-menu a .menu-text { font-size: 14px; }
+
+        .sidebar-menu a:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+            border-left-color: #3498db;
+        }
+
+        .sidebar-menu a.active {
+            background: rgba(52, 152, 219, 0.15);
+            color: white;
+            border-left-color: #3498db;
+        }
+
+        .sidebar-menu a .icon {
+            font-size: 18px;
+            width: 28px;
+            text-align: center;
+        }
+
+        .sidebar-menu a .menu-text {
+            font-size: 14px;
+        }
 
         /* ===== MAIN CONTENT ===== */
         .main-content {
-            margin-left: var(--sidebar-width);
+            margin-left: 250px;
             flex: 1;
             padding: 25px;
             min-height: 100vh;
@@ -349,13 +386,18 @@ $armada_list = Armada::getAll($conn);
             border-radius: 12px;
             margin-bottom: 25px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
-        .header-left h1 { color: var(--primary-color); font-size: 24px; }
-        .header-left p { color: #888; font-size: 14px; margin-top: 3px; }
+        .header h1 {
+            color: #2c3e50;
+            font-size: 24px;
+        }
+
+        .header p {
+            color: #888;
+            font-size: 14px;
+            margin-top: 3px;
+        }
 
         .hamburger {
             display: none;
@@ -363,8 +405,9 @@ $armada_list = Armada::getAll($conn);
             border: none;
             font-size: 28px;
             cursor: pointer;
-            color: var(--primary-color);
+            color: #2c3e50;
             padding: 5px 10px;
+            float: right;
         }
 
         /* ===== TABLE ===== */
@@ -387,11 +430,11 @@ $armada_list = Armada::getAll($conn);
 
         .table-header h2 {
             font-size: 18px;
-            color: var(--primary-color);
+            color: #2c3e50;
         }
 
         .btn-add {
-            background: var(--secondary-color);
+            background: #3498db;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -403,7 +446,7 @@ $armada_list = Armada::getAll($conn);
         }
 
         .btn-add:hover {
-            background: var(--primary-color);
+            background: #2c3e50;
             transform: scale(1.02);
         }
 
@@ -432,7 +475,9 @@ $armada_list = Armada::getAll($conn);
             letter-spacing: 0.5px;
         }
 
-        tr:hover { background: #f8f9fa; }
+        tr:hover {
+            background: #f8f9fa;
+        }
 
         .badge {
             display: inline-block;
@@ -442,12 +487,23 @@ $armada_list = Armada::getAll($conn);
             font-weight: 600;
         }
 
-        .badge-truk { background: #27ae60; color: white; }
-        .badge-kapal { background: #2980b9; color: white; }
-        .badge-pesawat { background: #f39c12; color: white; }
+        .badge-truk {
+            background: #27ae60;
+            color: white;
+        }
+
+        .badge-kapal {
+            background: #2980b9;
+            color: white;
+        }
+
+        .badge-pesawat {
+            background: #f39c12;
+            color: white;
+        }
 
         .btn-hapus {
-            background: var(--danger-color);
+            background: #e74c3c;
             color: white;
             padding: 5px 12px;
             border-radius: 5px;
@@ -468,7 +524,10 @@ $armada_list = Armada::getAll($conn);
             color: #999;
         }
 
-        .empty-state .empty-icon { font-size: 48px; margin-bottom: 15px; }
+        .empty-state .empty-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
 
         /* ===== MODAL ===== */
         .modal {
@@ -484,7 +543,9 @@ $armada_list = Armada::getAll($conn);
             align-items: center;
         }
 
-        .modal.open { display: flex; }
+        .modal.open {
+            display: flex;
+        }
 
         .modal-content {
             background: white;
@@ -509,9 +570,9 @@ $armada_list = Armada::getAll($conn);
         }
 
         .modal-content h2 {
-            color: var(--primary-color);
+            color: #2c3e50;
             margin-bottom: 20px;
-            border-bottom: 3px solid var(--secondary-color);
+            border-bottom: 3px solid #3498db;
             padding-bottom: 10px;
         }
 
@@ -527,7 +588,8 @@ $armada_list = Armada::getAll($conn);
             font-size: 14px;
         }
 
-        .modal-content input, .modal-content select {
+        .modal-content input,
+        .modal-content select {
             width: 100%;
             padding: 10px 12px;
             border: 2px solid #e0e0e0;
@@ -535,13 +597,14 @@ $armada_list = Armada::getAll($conn);
             font-size: 14px;
         }
 
-        .modal-content input:focus, .modal-content select:focus {
+        .modal-content input:focus,
+        .modal-content select:focus {
             outline: none;
-            border-color: var(--secondary-color);
+            border-color: #3498db;
         }
 
         .modal-content button[type="submit"] {
-            background: var(--secondary-color);
+            background: #3498db;
             color: white;
             border: none;
             padding: 12px;
@@ -554,7 +617,7 @@ $armada_list = Armada::getAll($conn);
         }
 
         .modal-content button[type="submit"]:hover {
-            background: var(--primary-color);
+            background: #2c3e50;
         }
 
         .modal-content .field-group {
@@ -568,8 +631,18 @@ $armada_list = Armada::getAll($conn);
             margin-bottom: 20px;
             font-weight: 500;
         }
-        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
@@ -577,15 +650,43 @@ $armada_list = Armada::getAll($conn);
                 left: -100%;
                 width: 280px;
             }
-            .sidebar.open { left: 0; }
-            .main-content { margin-left: 0; padding: 15px; }
-            .hamburger { display: block; }
-            .header { flex-direction: column; align-items: flex-start; gap: 10px; }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+
+            .hamburger {
+                display: block;
+            }
+
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
         }
 
-        .sidebar::-webkit-scrollbar { width: 5px; }
-        .sidebar::-webkit-scrollbar-track { background: #1a1a2e; }
-        .sidebar::-webkit-scrollbar-thumb { background: var(--secondary-color); border-radius: 10px; }
+        .sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #3498db;
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
@@ -630,7 +731,7 @@ $armada_list = Armada::getAll($conn);
     <div class="main-content">
         <!-- HEADER -->
         <div class="header">
-            <div class="header-left">
+            <div>
                 <h1>🚛 Manajemen Armada</h1>
                 <p>Kelola data armada - Truk Darat | Kapal Laut | Pesawat Kargo</p>
             </div>
