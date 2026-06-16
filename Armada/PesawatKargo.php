@@ -1,26 +1,18 @@
 <?php
-// armada/PesawatKargo.php
-require_once 'Armada.php';
-
+// Armada/PesawatKargo.php
 class PesawatKargo extends Armada {
     private $batas_ketinggian;
     private $izin_penerbangan_khusus;
     
-    public function __construct($conn) {
-        parent::__construct($conn);
-        $this->setJenisArmada('PesawatKargo');
-    }
-    
-    public function setBatasKetinggian($ketinggian) {
-        $this->batas_ketinggian = $ketinggian;
+    public function __construct($id_armada_code, $kapasitas_maksimal_kg, $status_kelaikan, $biaya_operasional_dasar, $batas_ketinggian, $izin_penerbangan_khusus) {
+        parent::__construct($id_armada_code, $kapasitas_maksimal_kg, $status_kelaikan, $biaya_operasional_dasar);
+        $this->batas_ketinggian = $batas_ketinggian;
+        $this->izin_penerbangan_khusus = $izin_penerbangan_khusus;
+        $this->setJenisArmada('Pesawat Kargo');
     }
     
     public function getBatasKetinggian() {
         return $this->batas_ketinggian;
-    }
-    
-    public function setIzinPenerbangan($izin) {
-        $this->izin_penerbangan_khusus = $izin;
     }
     
     public function getIzinPenerbangan() {
@@ -28,38 +20,40 @@ class PesawatKargo extends Armada {
     }
     
     public function hitungBiayaOperasional() {
-        $biaya_avtur = $this->getBiayaOperasionalDasar();
-        $biaya_bandara = 250000;
-        
-        // Tambahan biaya berdasarkan izin khusus
+        $biaya = $this->getBiayaOperasionalDasar();
+        $biaya += 250000;
         if ($this->izin_penerbangan_khusus == 'Cargo Malam') {
-            $biaya_bandara += 100000;
+            $biaya += 150000;
+        } elseif ($this->izin_penerbangan_khusus == 'Internasional') {
+            $biaya += 500000;
         }
-        
-        return $biaya_avtur + $biaya_bandara;
+        return $biaya;
     }
     
-    public function cekKelayakanJalan() {
-        $hasil_cek = [];
-        
+    public function cekKelayakan() {
+        $hasil = [];
         if ($this->getStatusKelaikan() == 'Laik') {
-            $hasil_cek[] = "✅ Izin navigasi udara valid";
-            $hasil_cek[] = "✅ Pesawat siap terbang";
+            $hasil[] = "✅ Izin navigasi udara valid";
+            $hasil[] = "✅ Mesin pesawat siap";
+            $hasil[] = "✅ Sistem hidrolik normal";
+            $hasil[] = "✅ Batas ketinggian: " . $this->batas_ketinggian . " m";
+            if (!empty($this->izin_penerbangan_khusus)) {
+                $hasil[] = "✅ Izin khusus: " . $this->izin_penerbangan_khusus;
+            }
+            $hasil[] = "🎉 STATUS: LAIK TERBANG";
         } else {
-            $hasil_cek[] = "❌ Pesawat tidak laik terbang";
-            return $hasil_cek;
+            $hasil[] = "❌ Pesawat tidak laik terbang";
+            $hasil[] = "❌ STATUS: TIDAK LAIK OPERASI";
         }
-        
-        if ($this->batas_ketinggian > 0) {
-            $hasil_cek[] = "✅ Batas ketinggian: " . $this->batas_ketinggian . " meter";
-        }
-        
-        if (!empty($this->izin_penerbangan_khusus)) {
-            $hasil_cek[] = "✅ Izin penerbangan: " . $this->izin_penerbangan_khusus;
-        }
-        
-        $hasil_cek[] = "✅ Pesawat kargo dinyatakan LAIK terbang";
-        return $hasil_cek;
+        return $hasil;
+    }
+    
+    public function getDetailSpesifik() {
+        return [
+            'label' => '✈️ Pesawat Kargo',
+            'detail1' => 'Batas Ketinggian: ' . $this->batas_ketinggian . ' m',
+            'detail2' => 'Izin Penerbangan: ' . ($this->izin_penerbangan_khusus ?: 'Reguler')
+        ];
     }
 }
 ?>

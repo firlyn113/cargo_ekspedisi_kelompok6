@@ -1,74 +1,62 @@
 <?php
-// armada/TrukDarat.php
-require_once 'Armada.php';
-
+// Armada/TrukDarat.php
 class TrukDarat extends Armada {
-    // Atribut tambahan
     private $jumlah_roda;
     private $rute_tol;
     
-    public function __construct($conn) {
-        parent::__construct($conn);
-        $this->setJenisArmada('TrukDarat');
-    }
-    
-    // Setter & Getter
-    public function setJumlahRoda($roda) {
-        $this->jumlah_roda = $roda;
+    public function __construct($id_armada_code, $kapasitas_maksimal_kg, $status_kelaikan, $biaya_operasional_dasar, $jumlah_roda, $rute_tol) {
+        parent::__construct($id_armada_code, $kapasitas_maksimal_kg, $status_kelaikan, $biaya_operasional_dasar);
+        $this->jumlah_roda = $jumlah_roda;
+        $this->rute_tol = $rute_tol;
+        $this->setJenisArmada('Truk Darat');
     }
     
     public function getJumlahRoda() {
         return $this->jumlah_roda;
     }
     
-    public function setRuteTol($rute) {
-        $this->rute_tol = $rute;
-    }
-    
     public function getRuteTol() {
         return $this->rute_tol;
     }
     
-    // IMPLEMENTASI POLYMORPHISM - Override method abstrak
     public function hitungBiayaOperasional() {
-        $biaya_bbm = $this->getBiayaOperasionalDasar();
-        $biaya_tol = 50000; // Estimasi biaya tol
-        
+        $biaya = $this->getBiayaOperasionalDasar();
         if (!empty($this->rute_tol)) {
             $jumlah_tol = substr_count($this->rute_tol, ',') + 1;
-            $biaya_tol = $jumlah_tol * 75000;
+            $biaya += $jumlah_tol * 75000;
+        } else {
+            $biaya += 50000;
         }
-        
-        return $biaya_bbm + $biaya_tol;
+        if ($this->jumlah_roda >= 8) {
+            $biaya += 100000;
+        }
+        return $biaya;
     }
     
-    // IMPLEMENTASI POLYMORPHISM - Override method abstrak
-    public function cekKelayakanJalan() {
-        $hasil_cek = [];
-        
-        // Cek mesin darat
+    public function cekKelayakan() {
+        $hasil = [];
         if ($this->getStatusKelaikan() == 'Laik') {
-            $hasil_cek[] = "✅ Mesin darat dalam kondisi baik";
-            $hasil_cek[] = "✅ Sistem rem berfungsi normal";
+            $hasil[] = "✅ Mesin dalam kondisi baik";
+            $hasil[] = "✅ Rem berfungsi normal";
+            $hasil[] = "✅ Ban dalam kondisi baik";
+            $hasil[] = "✅ Konfigurasi roda sesuai (" . $this->jumlah_roda . " roda)";
+            if (!empty($this->rute_tol)) {
+                $hasil[] = "✅ Rute tol: " . $this->rute_tol;
+            }
+            $hasil[] = "🎉 STATUS: LAIK BEROPERASI";
         } else {
-            $hasil_cek[] = "❌ Mesin darat perlu perbaikan";
-            return $hasil_cek;
+            $hasil[] = "❌ Mesin bermasalah";
+            $hasil[] = "❌ STATUS: TIDAK LAIK OPERASI";
         }
-        
-        // Cek kapasitas
-        if ($this->getKapasitasMaksimal() > 0) {
-            $hasil_cek[] = "✅ Kapasitas muatan: " . $this->getKapasitasMaksimal() . " kg";
-        }
-        
-        // Cek rute tol
-        if (!empty($this->rute_tol)) {
-            $hasil_cek[] = "✅ Rute tol tersedia: " . $this->rute_tol;
-        } else {
-            $hasil_cek[] = "⚠️ Tidak ada rute tol yang ditentukan";
-        }
-        
-        $hasil_cek[] = "✅ Truk darat dinyatakan LAIK beroperasi";
-        return $hasil_cek;
+        return $hasil;
+    }
+    
+    public function getDetailSpesifik() {
+        return [
+            'label' => '🚛 Truk Darat',
+            'detail1' => 'Jumlah Roda: ' . $this->jumlah_roda,
+            'detail2' => 'Rute Tol: ' . ($this->rute_tol ?: 'Tidak ada rute tol')
+        ];
     }
 }
 ?>

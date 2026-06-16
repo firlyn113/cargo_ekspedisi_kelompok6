@@ -1,26 +1,18 @@
 <?php
-// armada/KapalLaut.php
-require_once 'Armada.php';
-
+// Armada/KapalLaut.php
 class KapalLaut extends Armada {
     private $nama_dermaga;
     private $jenis_kontainer;
     
-    public function __construct($conn) {
-        parent::__construct($conn);
-        $this->setJenisArmada('KapalLaut');
-    }
-    
-    public function setNamaDermaga($dermaga) {
-        $this->nama_dermaga = $dermaga;
+    public function __construct($id_armada_code, $kapasitas_maksimal_kg, $status_kelaikan, $biaya_operasional_dasar, $nama_dermaga, $jenis_kontainer) {
+        parent::__construct($id_armada_code, $kapasitas_maksimal_kg, $status_kelaikan, $biaya_operasional_dasar);
+        $this->nama_dermaga = $nama_dermaga;
+        $this->jenis_kontainer = $jenis_kontainer;
+        $this->setJenisArmada('Kapal Laut');
     }
     
     public function getNamaDermaga() {
         return $this->nama_dermaga;
-    }
-    
-    public function setJenisKontainer($kontainer) {
-        $this->jenis_kontainer = $kontainer;
     }
     
     public function getJenisKontainer() {
@@ -28,41 +20,38 @@ class KapalLaut extends Armada {
     }
     
     public function hitungBiayaOperasional() {
-        $biaya_bbm = $this->getBiayaOperasionalDasar();
-        $biaya_sandar = 150000; // Biaya sandar di dermaga
-        
-        // Tambahan biaya berdasarkan jenis kontainer
-        $biaya_kontainer = 0;
+        $biaya = $this->getBiayaOperasionalDasar();
+        $biaya += 150000;
         if ($this->jenis_kontainer == 'Refrigerated') {
-            $biaya_kontainer = 100000;
+            $biaya += 200000;
         } elseif ($this->jenis_kontainer == 'Open Top') {
-            $biaya_kontainer = 50000;
+            $biaya += 100000;
         }
-        
-        return $biaya_bbm + $biaya_sandar + $biaya_kontainer;
+        return $biaya;
     }
     
-    public function cekKelayakanJalan() {
-        $hasil_cek = [];
-        
+    public function cekKelayakan() {
+        $hasil = [];
         if ($this->getStatusKelaikan() == 'Laik') {
-            $hasil_cek[] = "✅ Manifes laut lengkap";
-            $hasil_cek[] = "✅ Sistem navigasi berfungsi";
+            $hasil[] = "✅ Manifes laut lengkap";
+            $hasil[] = "✅ Sistem navigasi berfungsi";
+            $hasil[] = "✅ Mesin kapal prima";
+            $hasil[] = "✅ Dermaga tujuan: " . $this->nama_dermaga;
+            $hasil[] = "✅ Kontainer: " . $this->jenis_kontainer;
+            $hasil[] = "🎉 STATUS: LAIK BERLAYAR";
         } else {
-            $hasil_cek[] = "❌ Kapal tidak laik laut";
-            return $hasil_cek;
+            $hasil[] = "❌ Kapal tidak laik laut";
+            $hasil[] = "❌ STATUS: TIDAK LAIK OPERASI";
         }
-        
-        if (!empty($this->nama_dermaga)) {
-            $hasil_cek[] = "✅ Dermaga tujuan: " . $this->nama_dermaga;
-        }
-        
-        if (!empty($this->jenis_kontainer)) {
-            $hasil_cek[] = "✅ Jenis kontainer: " . $this->jenis_kontainer;
-        }
-        
-        $hasil_cek[] = "✅ Kapal laut dinyatakan LAIK berlayar";
-        return $hasil_cek;
+        return $hasil;
+    }
+    
+    public function getDetailSpesifik() {
+        return [
+            'label' => '⛴️ Kapal Laut',
+            'detail1' => 'Dermaga: ' . $this->nama_dermaga,
+            'detail2' => 'Kontainer: ' . $this->jenis_kontainer
+        ];
     }
 }
 ?>
