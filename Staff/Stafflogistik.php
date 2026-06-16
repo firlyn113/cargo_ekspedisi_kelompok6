@@ -1,130 +1,96 @@
 <?php
 /**
  * Abstract Class: StaffLogistik
- * Kelas abstrak utama untuk mengelola data pegawai logistik
- * Menerapkan Pilar OOP: Abstraksi, Enkapsulasi, Inheritance
+ * Kelas abstrak utama untuk semua pegawai logistik.
+ *
+ * Pilar OOP yang diterapkan:
+ *  - Abstraksi   : Kelas ini tidak bisa diinstansiasi langsung
+ *  - Enkapsulasi : Atribut bersifat private, diakses via getter/setter
+ *  - Inheritance : Subclass mewarisi atribut & method umum
+ *  - Polimorfisme: Abstract method wajib di-override tiap subclass
  */
-
 abstract class StaffLogistik {
-    
-    // ===== ENKAPSULASI: Private Attributes =====
+
+    // =====================================================
+    //  ENKAPSULASI — Atribut private (hanya 4 sesuai spec)
+    // =====================================================
     private $idStaff;
-    private $idStaffCode;
     private $namaLengkap;
     private $gajiPokok;
     private $jamKerja;
-    
-    // Protected untuk akses ke subclass
+
+    /** Koneksi database, protected agar subclass bisa mengaksesnya */
     protected $conn;
-    
-    /**
-     * Constructor
-     */
+
+    // =====================================================
+    //  CONSTRUCTOR
+    // =====================================================
     public function __construct($conn) {
         $this->conn = $conn;
     }
-    
-    // ===== GETTER & SETTER (Enkapsulasi) =====
-    
-    public function setIdStaff($idStaff) {
-        $this->idStaff = $idStaff;
-    }
-    
-    public function getIdStaff() {
-        return $this->idStaff;
-    }
-    
-    public function setIdStaffCode($idStaffCode) {
-        $this->idStaffCode = $idStaffCode;
-    }
-    
-    public function getIdStaffCode() {
-        return $this->idStaffCode;
-    }
-    
-    public function setNamaLengkap($namaLengkap) {
-        $this->namaLengkap = $namaLengkap;
-    }
-    
-    public function getNamaLengkap() {
-        return $this->namaLengkap;
-    }
-    
-    public function setGajiPokok($gajiPokok) {
-        $this->gajiPokok = $gajiPokok;
-    }
-    
-    public function getGajiPokok() {
-        return $this->gajiPokok;
-    }
-    
-    public function setJamKerja($jamKerja) {
-        $this->jamKerja = $jamKerja;
-    }
-    
-    public function getJamKerja() {
-        return $this->jamKerja;
-    }
-    
-    public function getConn() {
-        return $this->conn;
-    }
-    
-    // ===== ABSTRACT METHODS (Polimorfisme - harus diimplementasikan di subclass) =====
-    
+
+    // =====================================================
+    //  GETTER & SETTER  (Enkapsulasi)
+    // =====================================================
+    public function setIdStaff($idStaff)       { $this->idStaff     = $idStaff;     }
+    public function getIdStaff()               { return $this->idStaff;              }
+
+    public function setNamaLengkap($nama)      { $this->namaLengkap = $nama;         }
+    public function getNamaLengkap()           { return $this->namaLengkap;          }
+
+    public function setGajiPokok($gaji)        { $this->gajiPokok   = $gaji;         }
+    public function getGajiPokok()             { return $this->gajiPokok;            }
+
+    public function setJamKerja($jam)          { $this->jamKerja    = $jam;          }
+    public function getJamKerja()              { return $this->jamKerja;             }
+
+    public function getConn()                  { return $this->conn;                 }
+
+    // =====================================================
+    //  ABSTRACT METHODS  (Polimorfisme)
+    //  Wajib diimplementasikan oleh setiap subclass
+    // =====================================================
+
     /**
-     * Metode Abstrak 1: hitungTakeHomePay
-     * Setiap jenis staff menghitung gaji bawa pulang dengan cara berbeda
-     * 
-     * @return decimal Jumlah gaji bawa pulang
+     * Menghitung total gaji bawa pulang.
+     * Setiap subclass memiliki rumus perhitungan yang berbeda.
+     *
+     * @return float Total Take Home Pay
      */
     abstract public function hitungTakeHomePay();
-    
+
     /**
-     * Metode Abstrak 2: evaluasiSOPKerja
-     * Setiap jenis staff memiliki kriteria evaluasi yang berbeda
-     * 
-     * @return array Hasil evaluasi SOP kerja
+     * Mengevaluasi kinerja berdasarkan SOP peran masing-masing.
+     * Setiap subclass memiliki kriteria evaluasi yang berbeda.
+     *
+     * @return array Hasil evaluasi beserta skor dan detail
      */
     abstract public function evaluasiSOPKerja();
-    
+
     /**
-     * Metode Umum: Simpan Data Staff ke Database
-     */
-    public function save() {
-        $sql = "INSERT INTO staff (id_staff_code, nama_lengkap, gaji_pokok, jam_kerja, jenis_staff) 
-                VALUES (?, ?, ?, ?, ?)";
-        
-        $stmt = $this->conn->prepare($sql);
-        $jenis_staff = $this->getJenisStaff();
-        
-        $stmt->bind_param("sssds", 
-            $this->idStaffCode, 
-            $this->namaLengkap, 
-            $this->gajiPokok, 
-            $this->jamKerja,
-            $jenis_staff
-        );
-        
-        return $stmt->execute();
-    }
-    
-    /**
-     * Metode untuk mendapatkan jenis staff (dioverride di subclass)
+     * Mengembalikan nama jenis staff (dioverride di subclass).
+     *
+     * @return string Nama jenis staff
      */
     abstract public function getJenisStaff();
-    
+
+    // =====================================================
+    //  METHOD UMUM  (Concrete — diwarisi semua subclass)
+    // =====================================================
+
     /**
-     * Metode untuk menampilkan info staff
+     * Menampilkan info dasar staff (atribut dari abstract class).
+     * Subclass dapat meng-override dan menambahkan atribut spesifiknya.
+     *
+     * @return array Data dasar staff
      */
     public function displayInfo() {
         return [
-            'id_staff' => $this->idStaff,
-            'id_staff_code' => $this->idStaffCode,
+            'id_staff'     => $this->idStaff,
             'nama_lengkap' => $this->namaLengkap,
-            'gaji_pokok' => $this->gajiPokok,
-            'jam_kerja' => $this->jamKerja,
-            'jenis_staff' => $this->getJenisStaff()
+            'gaji_pokok'   => $this->gajiPokok,
+            'jam_kerja'    => $this->jamKerja,
+            'jenis_staff'  => $this->getJenisStaff(),
         ];
     }
 }

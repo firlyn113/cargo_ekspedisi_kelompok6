@@ -1,11 +1,10 @@
 <?php
 /**
- * Index.php - Modul STAFF
- * Interface utama untuk mengelola semua staff logistik
- * Fitur: CREATE, READ, UPDATE, DELETE, Hitung Take Home Pay, Evaluasi SOP Kerja
+ * index.php - Modul STAFF (Read-Only)
+ * Menampilkan data staff berdasarkan konsep OOP:
+ * Abstract Class StaffLogistik, Subclass, Polimorfisme
  */
 
-// Koneksi database
 require_once '../config/koneksi.php';
 require_once 'StaffManager.php';
 
@@ -13,855 +12,666 @@ $database = new Database();
 $conn = $database->getConnection();
 $staffManager = new StaffManager($conn);
 
-// Variabel untuk mode tampilan
 $mode = isset($_GET['mode']) ? $_GET['mode'] : 'list';
-$message = '';
-$messageType = '';
-
-// ===== PROSES FORM =====
-
-// CREATE: Tambah Staff Baru
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && $mode == 'add') {
-    $idStaffCode = $_POST['id_staff_code'] ?? '';
-    $namaLengkap = $_POST['nama_lengkap'] ?? '';
-    $gajiPokok = $_POST['gaji_pokok'] ?? 0;
-    $jamKerja = $_POST['jam_kerja'] ?? 0;
-    $jenisStaff = $_POST['jenis_staff'] ?? '';
-    
-    $dataEkstra = [];
-    
-    if ($jenisStaff == 'SupirTruk') {
-        $dataEkstra = [
-            'nomor_sim_b' => $_POST['nomor_sim_b'] ?? '',
-            'uang_makan_jalan' => $_POST['uang_makan_jalan'] ?? 0,
-            'rute_operasional' => $_POST['rute_operasional'] ?? ''
-        ];
-    } elseif ($jenisStaff == 'AdminGudang') {
-        $dataEkstra = [
-            'shift_kerja' => $_POST['shift_kerja'] ?? 'Pagi',
-            'zona_gudang' => $_POST['zona_gudang'] ?? ''
-        ];
-    } elseif ($jenisStaff == 'KurirMotor') {
-        $dataEkstra = [
-            'plat_nomor_motor' => $_POST['plat_nomor_motor'] ?? '',
-            'area_cakupan' => $_POST['area_cakupan'] ?? ''
-        ];
-    }
-    
-    $result = $staffManager->addStaff($idStaffCode, $namaLengkap, $gajiPokok, $jamKerja, $jenisStaff, $dataEkstra);
-    
-    if ($result['success']) {
-        $message = $result['message'];
-        $messageType = 'success';
-        $mode = 'list';
-    } else {
-        $message = $result['message'];
-        $messageType = 'danger';
-    }
-}
-
-// UPDATE: Perbarui Staff
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && $mode == 'edit') {
-    $idStaff = $_POST['id_staff'] ?? 0;
-    $namaLengkap = $_POST['nama_lengkap'] ?? null;
-    $gajiPokok = $_POST['gaji_pokok'] ?? null;
-    $jamKerja = $_POST['jam_kerja'] ?? null;
-    
-    $dataEkstra = [];
-    $jenisStaff = $_POST['jenis_staff'] ?? '';
-    
-    if ($jenisStaff == 'SupirTruk') {
-        $dataEkstra = [
-            'nomor_sim_b' => $_POST['nomor_sim_b'] ?? null,
-            'uang_makan_jalan' => $_POST['uang_makan_jalan'] ?? null,
-            'rute_operasional' => $_POST['rute_operasional'] ?? null
-        ];
-    } elseif ($jenisStaff == 'AdminGudang') {
-        $dataEkstra = [
-            'shift_kerja' => $_POST['shift_kerja'] ?? null,
-            'zona_gudang' => $_POST['zona_gudang'] ?? null
-        ];
-    } elseif ($jenisStaff == 'KurirMotor') {
-        $dataEkstra = [
-            'plat_nomor_motor' => $_POST['plat_nomor_motor'] ?? null,
-            'area_cakupan' => $_POST['area_cakupan'] ?? null
-        ];
-    }
-    
-    $result = $staffManager->updateStaff($idStaff, $namaLengkap, $gajiPokok, $jamKerja, $dataEkstra);
-    
-    if ($result['success']) {
-        $message = $result['message'];
-        $messageType = 'success';
-        $mode = 'list';
-    } else {
-        $message = $result['message'];
-        $messageType = 'danger';
-    }
-}
-
-// DELETE: Hapus Staff
-if ($mode == 'delete' && isset($_GET['id'])) {
-    $result = $staffManager->deleteStaff($_GET['id']);
-    if ($result['success']) {
-        $message = $result['message'];
-        $messageType = 'success';
-    } else {
-        $message = $result['message'];
-        $messageType = 'danger';
-    }
-    $mode = 'list';
-}
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modul STAFF - Ekspedisi Logistik</title>
+    <title>Modul STAFF – Ekspedisi Logistik</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --success-color: #27ae60;
-            --danger-color: #e74c3c;
+            --brand:       #1B4FBF;
+            --brand-light: #EBF1FD;
+            --brand-dark:  #0D2E7A;
+            --accent:      #0F6E56;
+            --accent-bg:   #E1F5EE;
+            --muted:       #6c757d;
+            --surface:     #F7F9FC;
+            --border:      #DEE2E6;
         }
-        
+
         body {
-            background-color: #ecf0f1;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--surface);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-size: 0.9rem;
+            color: #212529;
         }
-        
-        .navbar {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .navbar-brand {
+
+        /* ── NAVBAR ── */
+        .top-bar {
+            background: var(--brand-dark);
+            color: #fff;
+            padding: 0.7rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1rem;
             font-weight: 600;
-            font-size: 1.3rem;
+            letter-spacing: 0.01em;
         }
-        
-        .container-main {
-            margin-top: 2rem;
-            margin-bottom: 2rem;
+        .top-bar span.sub {
+            font-weight: 400;
+            opacity: 0.65;
+            font-size: 0.85rem;
         }
-        
-        .card {
-            border: none;
+
+        /* ── LAYOUT ── */
+        .page-wrap {
+            max-width: 1060px;
+            margin: 1.8rem auto;
+            padding: 0 1rem;
+        }
+
+        /* ── OOP BANNER ── */
+        .oop-banner {
+            background: var(--brand-light);
+            border: 1px solid #c5d8fa;
             border-radius: 8px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            margin-bottom: 2rem;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
         }
-        
-        .card-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            border-radius: 8px 8px 0 0;
-            border: none;
-            padding: 1.5rem;
+        .oop-banner .icon {
+            font-size: 1.5rem;
+            color: var(--brand);
+            flex-shrink: 0;
+            margin-top: 2px;
         }
-        
-        .btn-primary {
-            background: var(--secondary-color);
-            border: none;
-            border-radius: 5px;
-            padding: 0.5rem 1.5rem;
-            font-weight: 500;
+        .oop-banner h6 {
+            margin: 0 0 0.2rem;
+            font-weight: 600;
+            color: var(--brand-dark);
+            font-size: 0.9rem;
         }
-        
-        .btn-primary:hover {
-            background: #2980b9;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        .oop-banner p {
+            margin: 0;
+            color: #3a5a9e;
+            font-size: 0.82rem;
+            line-height: 1.5;
         }
-        
-        .table {
-            margin-bottom: 0;
+        .pill {
+            display: inline-block;
+            background: var(--brand);
+            color: #fff;
+            border-radius: 20px;
+            padding: 1px 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            margin-right: 3px;
         }
-        
-        .table thead {
-            background-color: #f8f9fa;
-            border-bottom: 2px solid var(--secondary-color);
+
+        /* ── STAT CARDS ── */
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
         }
-        
-        .table-hover tbody tr:hover {
-            background-color: #f0f7ff;
+        .stat-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            text-align: center;
         }
-        
-        .badge {
-            padding: 0.5rem 0.8rem;
-            font-weight: 500;
+        .stat-card .num {
+            font-size: 1.9rem;
+            font-weight: 700;
+            line-height: 1.1;
+            color: var(--brand);
+        }
+        .stat-card .lbl {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 0.25rem;
+        }
+        .stat-card .badge-type {
+            display: inline-block;
+            margin-top: 0.3rem;
+            font-size: 0.68rem;
+            padding: 2px 7px;
             border-radius: 4px;
         }
-        
-        .form-control, .form-select {
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            padding: 0.7rem;
+
+        /* ── SEARCH BAR ── */
+        .search-bar {
+            display: flex;
+            gap: 0.6rem;
+            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
         }
-        
-        .form-control:focus, .form-select:focus {
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
-        }
-        
-        .alert {
+        .search-bar input,
+        .search-bar select {
+            border: 1px solid var(--border);
             border-radius: 6px;
-            border: none;
-            padding: 1rem 1.5rem;
+            padding: 0.45rem 0.8rem;
+            font-size: 0.85rem;
+            background: #fff;
+            outline: none;
+            transition: border-color 0.15s;
         }
-        
-        .tab-content {
-            background-color: white;
-            border-radius: 0 0 8px 8px;
-            padding: 2rem;
-        }
-        
-        .nav-tabs {
-            border-bottom: 2px solid var(--secondary-color);
-        }
-        
-        .nav-tabs .nav-link {
-            color: var(--primary-color);
-            border: none;
-            border-bottom: 3px solid transparent;
-            font-weight: 500;
-        }
-        
-        .nav-tabs .nav-link:hover {
-            border-color: var(--secondary-color);
-        }
-        
-        .nav-tabs .nav-link.active {
-            color: var(--secondary-color);
-            border-color: var(--secondary-color);
-            background-color: transparent;
-        }
-        
-        .stat-box {
-            background: white;
+        .search-bar input { flex: 1; min-width: 180px; }
+        .search-bar select { min-width: 175px; }
+        .search-bar input:focus,
+        .search-bar select:focus { border-color: var(--brand); }
+
+        /* ── TABLE ── */
+        .card-box {
+            background: #fff;
+            border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 1.5rem;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
         }
-        
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--secondary-color);
+        .card-box-header {
+            padding: 0.85rem 1.1rem;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        
-        .stat-label {
-            color: #7f8c8d;
-            margin-top: 0.5rem;
+        table.staff-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.84rem;
+        }
+        .staff-table thead th {
+            background: var(--surface);
+            padding: 0.6rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom: 1px solid var(--border);
+        }
+        .staff-table tbody tr {
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.1s;
+            cursor: pointer;
+        }
+        .staff-table tbody tr:hover { background: #f5f8ff; }
+        .staff-table tbody tr:last-child { border-bottom: none; }
+        .staff-table td { padding: 0.65rem 1rem; vertical-align: middle; }
+        .id-code { font-family: monospace; font-size: 0.8rem; color: var(--muted); }
+        .nama { font-weight: 500; }
+
+        /* ── BADGE JENIS ── */
+        .jenis-badge {
+            display: inline-block;
+            border-radius: 4px;
+            padding: 2px 9px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+        .badge-supir   { background: #FFF3CD; color: #856404; }
+        .badge-admin   { background: var(--brand-light); color: var(--brand-dark); }
+        .badge-kurir   { background: var(--accent-bg); color: var(--accent); }
+
+        /* ── VIEW DETAIL (slide panel) ── */
+        .panel-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .detail-table td { padding: 0.35rem 0; }
+        .detail-table td:first-child {
+            color: var(--muted);
+            width: 40%;
+            font-size: 0.8rem;
+        }
+
+        /* ── TABS (detail page) ── */
+        .tab-nav {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 0.55rem 1rem;
+            font-size: 0.82rem;
+            cursor: pointer;
+            color: var(--muted);
             font-weight: 500;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .tab-btn.active {
+            color: var(--brand);
+            border-bottom-color: var(--brand);
+        }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        /* ── THP TABLE ── */
+        .thp-table { width: 100%; font-size: 0.83rem; border-collapse: collapse; }
+        .thp-table tr { border-bottom: 1px solid #f0f0f0; }
+        .thp-table td { padding: 0.4rem 0; }
+        .thp-table td:last-child { text-align: right; font-weight: 500; }
+        .thp-total { font-size: 1rem; font-weight: 700; color: var(--accent); }
+
+        /* ── EVALUASI ── */
+        .eval-row { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0; border-bottom: 1px solid #f0f0f0; font-size: 0.82rem; }
+        .eval-row:last-child { border-bottom: none; }
+        .eval-skor { font-weight: 600; color: var(--brand); }
+        .eval-lulus   { background: var(--accent-bg); color: var(--accent); font-weight: 600; border-radius: 4px; padding: 2px 9px; font-size: 0.75rem; }
+        .eval-cond    { background: #FFF3CD; color: #856404; font-weight: 600; border-radius: 4px; padding: 2px 9px; font-size: 0.75rem; }
+        .eval-gagal   { background: #fce8e8; color: #a32d2d; font-weight: 600; border-radius: 4px; padding: 2px 9px; font-size: 0.75rem; }
+
+        /* ── BACK LINK ── */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            color: var(--brand);
+            text-decoration: none;
+            font-size: 0.83rem;
+            margin-bottom: 1rem;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        /* ── EMPTY ── */
+        .empty-row td {
+            text-align: center;
+            color: var(--muted);
+            padding: 2.5rem;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 640px) {
+            .stat-row { grid-template-columns: repeat(2, 1fr); }
+            .panel-wrap { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-dark">
-        <div class="container-fluid">
-            <span class="navbar-brand">
-                <i class="bi bi-people-fill"></i> Modul STAFF - Ekspedisi Logistik
-            </span>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+    <i class="bi bi-people-fill"></i>
+    Modul STAFF
+    <span class="sub">— Sistem Ekspedisi Logistik</span>
+    <a href="../dashboard.php" class="btn btn-primary">
+    Kembali ke Dashboard
+</a>
+</div>
+
+<div class="page-wrap">
+
+<?php
+
+/* ============================================================
+   MODE: DETAIL / VIEW
+   ============================================================ */
+if ($mode == 'view' && isset($_GET['id'])):
+    $staffData = $staffManager->getStaffById($_GET['id']);
+    if (!$staffData['success']):
+?>
+    <div class="alert alert-danger">Staff tidak ditemukan.</div>
+    <a href="?" class="back-link"><i class="bi bi-arrow-left"></i> Kembali ke daftar</a>
+<?php else:
+    $staff = $staffData['data'];
+
+    /* ---- Hitung THP ---- */
+    $thpResult = $staffManager->hitungTakeHomePay($staff['id_staff']);
+    $thpData   = $thpResult['success'] ? $thpResult['data'] : [];
+
+    /* ---- Evaluasi SOP ---- */
+    $evalData = [];
+    if ($staff['jenis_staff'] == 'AdminGudang') {
+        $evalData = ['jumlah_barang' => 50, 'jumlah_error' => 1];
+    } elseif ($staff['jenis_staff'] == 'KurirMotor') {
+        $evalData = ['jumlah_paket_antar' => 20, 'jumlah_paket_terima' => 20, 'accuracy_persen' => 98];
+    }
+    $evalResult = $staffManager->evaluasiSOPKerja($staff['id_staff'], $evalData);
+    $eval       = ($evalResult['success'] ?? false) ? $evalResult['data'] : [];
+
+    /* Badge warna per jenis */
+    $badgeClass = ['SupirTruk' => 'badge-supir', 'AdminGudang' => 'badge-admin', 'KurirMotor' => 'badge-kurir'];
+    $jenisLabel = ['SupirTruk' => 'Sopir Truk', 'AdminGudang' => 'Admin Gudang', 'KurirMotor' => 'Kurir Motor'];
+    $bc = $badgeClass[$staff['jenis_staff']] ?? 'badge-admin';
+    $jl = $jenisLabel[$staff['jenis_staff']] ?? $staff['jenis_staff'];
+?>
+
+    <a href="?" class="back-link"><i class="bi bi-arrow-left"></i> Kembali ke daftar</a>
+
+    <!-- OOP BANNER – menunjukkan konsep yang dipakai -->
+    <div class="oop-banner">
+        <div class="icon"><i class="bi bi-diagram-3-fill"></i></div>
+        <div>
+            <h6>Konsep OOP yang diterapkan pada objek ini</h6>
+            <p>
+                <span class="pill">Abstract Class</span> <code>StaffLogistik</code> &rarr;
+                <span class="pill">Subclass</span> <code><?php echo $staff['jenis_staff']; ?></code> &nbsp;|&nbsp;
+                <span class="pill">Enkapsulasi</span> id_staff, namaLengkap, gajiPokok, jamKerja &nbsp;|&nbsp;
+                <span class="pill">Polimorfisme</span> hitungTakeHomePay() &amp; evaluasiSOPKerja()
+            </p>
         </div>
-    </nav>
-
-    <div class="container-main">
-        <!-- MESSAGE ALERT -->
-        <?php if ($message): ?>
-            <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show" role="alert">
-                <i class="bi bi-<?php echo ($messageType == 'success' ? 'check-circle' : 'exclamation-circle'); ?>"></i>
-                <?php echo $message; ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-
-        <!-- MODE: LIST SEMUA STAFF -->
-        <?php if ($mode == 'list'): ?>
-            
-            <!-- STATISTICS -->
-            <div class="row mb-4">
-                <?php 
-                    $stats = $staffManager->getStaffStatistics();
-                    if ($stats['success']): 
-                ?>
-                    <div class="col-md-3">
-                        <div class="stat-box">
-                            <div class="stat-number"><?php echo $stats['data']['SupirTruk']; ?></div>
-                            <div class="stat-label">Sopir Truk</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-box">
-                            <div class="stat-number"><?php echo $stats['data']['AdminGudang']; ?></div>
-                            <div class="stat-label">Admin Gudang</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-box">
-                            <div class="stat-number"><?php echo $stats['data']['KurirMotor']; ?></div>
-                            <div class="stat-label">Kurir Motor</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-box">
-                            <div class="stat-number"><?php echo $stats['total']; ?></div>
-                            <div class="stat-label">Total Staff</div>
-                        </div>
-                    </div>
-                <?php endif; ?>
-            </div>
-
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> Daftar Staff Logistik</h5>
-                    <a href="?mode=add" class="btn btn-light btn-sm">
-                        <i class="bi bi-plus-lg"></i> Tambah Staff Baru
-                    </a>
-                </div>
-                <div class="card-body">
-                    <!-- FILTER -->
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <input type="text" id="searchInput" class="form-control" placeholder="Cari nama atau ID staff...">
-                        </div>
-                        <div class="col-md-6">
-                            <select id="filterJenis" class="form-select">
-                                <option value="">Semua Jenis Staff</option>
-                                <option value="SupirTruk">Sopir Truk</option>
-                                <option value="AdminGudang">Admin Gudang</option>
-                                <option value="KurirMotor">Kurir Motor</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- TABEL STAFF -->
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID Code</th>
-                                    <th>Nama Lengkap</th>
-                                    <th>Jenis Staff</th>
-                                    <th>Gaji Pokok</th>
-                                    <th>Jam Kerja</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="staffTable">
-                                <?php 
-                                    $staffResult = $staffManager->getAllStaff();
-                                    if ($staffResult['success'] && count($staffResult['data']) > 0):
-                                        foreach ($staffResult['data'] as $staff):
-                                ?>
-                                    <tr>
-                                        <td><code><?php echo htmlspecialchars($staff['id_staff_code']); ?></code></td>
-                                        <td><strong><?php echo htmlspecialchars($staff['nama_lengkap']); ?></strong></td>
-                                        <td>
-                                            <span class="badge bg-info"><?php echo $staff['jenis_staff']; ?></span>
-                                        </td>
-                                        <td>Rp <?php echo number_format($staff['gaji_pokok'], 0, ',', '.'); ?></td>
-                                        <td><?php echo $staff['jam_kerja']; ?> jam</td>
-                                        <td>
-                                            <div class="btn-group" role="group">
-                                                <a href="?mode=view&id=<?php echo $staff['id_staff']; ?>" class="btn btn-sm btn-primary" title="Lihat Detail">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                                <a href="?mode=edit&id=<?php echo $staff['id_staff']; ?>" class="btn btn-sm btn-warning" title="Edit">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                                <a href="?mode=delete&id=<?php echo $staff['id_staff']; ?>" class="btn btn-sm btn-danger" title="Hapus" onclick="return confirm('Yakin ingin menghapus?')">
-                                                    <i class="bi bi-trash"></i>
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php 
-                                        endforeach;
-                                    else:
-                                ?>
-                                    <tr>
-                                        <td colspan="6" class="text-center text-muted py-4">
-                                            <i class="bi bi-inbox"></i> Tidak ada data staff
-                                        </td>
-                                    </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-        <!-- MODE: TAMBAH STAFF -->
-        <?php elseif ($mode == 'add'): ?>
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-person-plus"></i> Tambah Staff Baru</h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST" class="needs-validation">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">ID Staff Code</label>
-                                <input type="text" class="form-control" name="id_staff_code" required placeholder="Contoh: STF001">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Nama Lengkap</label>
-                                <input type="text" class="form-control" name="nama_lengkap" required placeholder="Nama lengkap staff">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Jenis Staff</label>
-                                <select class="form-select" name="jenis_staff" id="jenisStaffForm" required onchange="updateFormFields()">
-                                    <option value="">-- Pilih Jenis Staff --</option>
-                                    <option value="SupirTruk">Sopir Truk</option>
-                                    <option value="AdminGudang">Admin Gudang</option>
-                                    <option value="KurirMotor">Kurir Motor</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Gaji Pokok (Rp)</label>
-                                <input type="number" class="form-control" name="gaji_pokok" required placeholder="2000000">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Jam Kerja / Bulan</label>
-                                <input type="number" class="form-control" name="jam_kerja" required placeholder="200">
-                            </div>
-                        </div>
-
-                        <!-- FIELD DINAMIS BERDASARKAN JENIS STAFF -->
-                        <div id="dinamicFields"></div>
-
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-check-lg"></i> Simpan Data
-                            </button>
-                            <a href="?mode=list" class="btn btn-secondary">
-                                <i class="bi bi-x-lg"></i> Batal
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-        <!-- MODE: EDIT STAFF -->
-        <?php elseif ($mode == 'edit' && isset($_GET['id'])): 
-            $staffData = $staffManager->getStaffById($_GET['id']);
-            if ($staffData['success']):
-                $staff = $staffData['data'];
-        ?>
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Edit Data Staff</h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST" class="needs-validation">
-                        <input type="hidden" name="id_staff" value="<?php echo $staff['id_staff']; ?>">
-                        <input type="hidden" name="jenis_staff" value="<?php echo $staff['jenis_staff']; ?>">
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">ID Staff Code</label>
-                                <input type="text" class="form-control" value="<?php echo htmlspecialchars($staff['id_staff_code']); ?>" disabled>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Nama Lengkap</label>
-                                <input type="text" class="form-control" name="nama_lengkap" value="<?php echo htmlspecialchars($staff['nama_lengkap']); ?>" required>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Gaji Pokok (Rp)</label>
-                                <input type="number" class="form-control" name="gaji_pokok" value="<?php echo $staff['gaji_pokok']; ?>" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Jam Kerja / Bulan</label>
-                                <input type="number" class="form-control" name="jam_kerja" value="<?php echo $staff['jam_kerja']; ?>" required>
-                            </div>
-                        </div>
-
-                        <!-- FIELD DINAMIS BERDASARKAN JENIS STAFF -->
-                        <?php if ($staff['jenis_staff'] == 'SupirTruk'): ?>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Nomor SIM B</label>
-                                    <input type="text" class="form-control" name="nomor_sim_b" value="<?php echo htmlspecialchars($staff['nomor_sim_b'] ?? ''); ?>">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Uang Makan Jalan (Rp)</label>
-                                    <input type="number" class="form-control" name="uang_makan_jalan" value="<?php echo $staff['uang_makan_jalan'] ?? 0; ?>">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Rute Operasional</label>
-                                    <input type="text" class="form-control" name="rute_operasional" value="<?php echo htmlspecialchars($staff['rute_tol'] ?? ''); ?>" placeholder="Contoh: Jakarta-Bandung">
-                                </div>
-                            </div>
-
-                        <?php elseif ($staff['jenis_staff'] == 'AdminGudang'): ?>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Shift Kerja</label>
-                                    <select class="form-select" name="shift_kerja">
-                                        <option value="Pagi" <?php echo ($staff['shift_kerja'] == 'Pagi' ? 'selected' : ''); ?>>Pagi</option>
-                                        <option value="Siang" <?php echo ($staff['shift_kerja'] == 'Siang' ? 'selected' : ''); ?>>Siang</option>
-                                        <option value="Malam" <?php echo ($staff['shift_kerja'] == 'Malam' ? 'selected' : ''); ?>>Malam</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Zona Gudang</label>
-                                    <input type="text" class="form-control" name="zona_gudang" value="<?php echo htmlspecialchars($staff['zona_gudang'] ?? ''); ?>" placeholder="Contoh: Zona A">
-                                </div>
-                            </div>
-
-                        <?php elseif ($staff['jenis_staff'] == 'KurirMotor'): ?>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Plat Nomor Motor</label>
-                                    <input type="text" class="form-control" name="plat_nomor_motor" value="<?php echo htmlspecialchars($staff['plat_nomor_motor'] ?? ''); ?>" placeholder="Contoh: B 1234 XYZ">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Area Cakupan</label>
-                                    <input type="text" class="form-control" name="area_cakupan" value="<?php echo htmlspecialchars($staff['area_cakupan'] ?? ''); ?>" placeholder="Contoh: Jakarta Pusat">
-                                </div>
-                            </div>
-                        <?php endif; ?>
-
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-check-lg"></i> Simpan Perubahan
-                            </button>
-                            <a href="?mode=list" class="btn btn-secondary">
-                                <i class="bi bi-x-lg"></i> Batal
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        <?php 
-            else:
-                echo '<div class="alert alert-danger">Staff tidak ditemukan!</div>';
-            endif;
-        
-        // MODE: VIEW DETAIL & EVALUASI
-        elseif ($mode == 'view' && isset($_GET['id'])):
-            $staffData = $staffManager->getStaffById($_GET['id']);
-            if ($staffData['success']):
-                $staff = $staffData['data'];
-        ?>
-            <div class="row">
-                <!-- INFORMASI STAFF -->
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="mb-0"><i class="bi bi-person-badge"></i> Informasi Staff</h5>
-                        </div>
-                        <div class="card-body">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td><strong>ID Code:</strong></td>
-                                    <td><?php echo htmlspecialchars($staff['id_staff_code']); ?></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Nama:</strong></td>
-                                    <td><?php echo htmlspecialchars($staff['nama_lengkap']); ?></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Jenis Staff:</strong></td>
-                                    <td><span class="badge bg-info"><?php echo $staff['jenis_staff']; ?></span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Gaji Pokok:</strong></td>
-                                    <td>Rp <?php echo number_format($staff['gaji_pokok'], 0, ',', '.'); ?></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Jam Kerja:</strong></td>
-                                    <td><?php echo $staff['jam_kerja']; ?> jam/bulan</td>
-                                </tr>
-
-                                <?php if ($staff['jenis_staff'] == 'SupirTruk'): ?>
-                                    <tr>
-                                        <td><strong>No. SIM B:</strong></td>
-                                        <td><?php echo htmlspecialchars($staff['nomor_sim_b'] ?? '-'); ?></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Uang Makan Jalan:</strong></td>
-                                        <td>Rp <?php echo number_format($staff['uang_makan_jalan'] ?? 0, 0, ',', '.'); ?></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Rute Operasional:</strong></td>
-                                        <td><?php echo htmlspecialchars($staff['rute_tol'] ?? '-'); ?></td>
-                                    </tr>
-
-                                <?php elseif ($staff['jenis_staff'] == 'AdminGudang'): ?>
-                                    <tr>
-                                        <td><strong>Shift Kerja:</strong></td>
-                                        <td><?php echo htmlspecialchars($staff['shift_kerja'] ?? '-'); ?></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Zona Gudang:</strong></td>
-                                        <td><?php echo htmlspecialchars($staff['zona_gudang'] ?? '-'); ?></td>
-                                    </tr>
-
-                                <?php elseif ($staff['jenis_staff'] == 'KurirMotor'): ?>
-                                    <tr>
-                                        <td><strong>Plat Motor:</strong></td>
-                                        <td><?php echo htmlspecialchars($staff['plat_nomor_motor'] ?? '-'); ?></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Area Cakupan:</strong></td>
-                                        <td><?php echo htmlspecialchars($staff['area_cakupan'] ?? '-'); ?></td>
-                                    </tr>
-                                <?php endif; ?>
-                            </table>
-
-                            <div class="d-flex gap-2 mt-3">
-                                <a href="?mode=edit&id=<?php echo $staff['id_staff']; ?>" class="btn btn-warning btn-sm">
-                                    <i class="bi bi-pencil"></i> Edit
-                                </a>
-                                <a href="?mode=list" class="btn btn-secondary btn-sm">
-                                    <i class="bi bi-arrow-left"></i> Kembali
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- HITUNG GAJI & EVALUASI -->
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="mb-0"><i class="bi bi-calculator"></i> Perhitungan & Evaluasi</h5>
-                        </div>
-                        <div class="card-body">
-                            <ul class="nav nav-tabs" role="tablist">
-                                <li class="nav-item">
-                                    <a class="nav-link active" data-bs-toggle="tab" href="#takeHomePay">Take Home Pay</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" data-bs-toggle="tab" href="#evaluasi">Evaluasi SOP</a>
-                                </li>
-                            </ul>
-
-                            <div class="tab-content">
-                                <!-- TAB 1: TAKE HOME PAY -->
-                                <div id="takeHomePay" class="tab-pane fade show active">
-                                    <div class="mt-4">
-                                        <?php
-                                            $thpResult = $staffManager->hitungTakeHomePay($staff['id_staff']);
-                                            if ($thpResult['success']):
-                                                $thpData = $thpResult['data'];
-                                        ?>
-                                            <div class="alert alert-info">
-                                                <h6>Perhitungan Take Home Pay</h6>
-                                                <table class="table table-sm">
-                                                    <tr>
-                                                        <td>Gaji Pokok</td>
-                                                        <td class="text-end"><strong>Rp <?php echo number_format($thpData['gaji_pokok'], 0, ',', '.'); ?></strong></td>
-                                                    </tr>
-                                                    <?php if ($staff['jenis_staff'] == 'SupirTruk'): ?>
-                                                        <tr>
-                                                            <td>Uang Makan Jalan</td>
-                                                            <td class="text-end"><strong>Rp <?php echo number_format($staff['uang_makan_jalan'] ?? 0, 0, ',', '.'); ?></strong></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Tunjangan Lembur (0 jam)</td>
-                                                            <td class="text-end"><strong>Rp 0</strong></td>
-                                                        </tr>
-                                                    <?php elseif ($staff['jenis_staff'] == 'AdminGudang'): ?>
-                                                        <tr>
-                                                            <td>Tunjangan Shift (<?php echo htmlspecialchars($staff['shift_kerja'] ?? '-'); ?>)</td>
-                                                            <td class="text-end"><strong>Rp <?php echo number_format($thpData['gaji_pokok'] * ($staff['shift_kerja'] == 'Malam' ? 0.10 : 0.05), 0, ',', '.'); ?></strong></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Bonus Produktivitas</td>
-                                                            <td class="text-end"><strong>Rp 0</strong></td>
-                                                        </tr>
-                                                    <?php elseif ($staff['jenis_staff'] == 'KurirMotor'): ?>
-                                                        <tr>
-                                                            <td>Insentif Per Paket (0 paket)</td>
-                                                            <td class="text-end"><strong>Rp 0</strong></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Bonus Accuracy</td>
-                                                            <td class="text-end"><strong>Rp 0</strong></td>
-                                                        </tr>
-                                                    <?php endif; ?>
-                                                    <tr class="table-active">
-                                                        <td><strong>TOTAL TAKE HOME PAY</strong></td>
-                                                        <td class="text-end"><strong style="color: var(--success-color); font-size: 1.2rem;">Rp <?php echo number_format($thpData['take_home_pay'], 0, ',', '.'); ?></strong></td>
-                                                    </tr>
-                                                </table>
-                                            </div>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-
-                                <!-- TAB 2: EVALUASI SOP KERJA -->
-                                <div id="evaluasi" class="tab-pane fade">
-                                    <div class="mt-4">
-                                        <?php
-                                            $evalData = [];
-                                            if ($staff['jenis_staff'] == 'AdminGudang') {
-                                                $evalData = ['jumlah_barang' => 50, 'jumlah_error' => 1];
-                                            } elseif ($staff['jenis_staff'] == 'KurirMotor') {
-                                                $evalData = ['jumlah_paket_antar' => 20, 'jumlah_paket_terima' => 20, 'accuracy_persen' => 98];
-                                            }
-                                            
-                                            $evalResult = $staffManager->evaluasiSOPKerja($staff['id_staff'], $evalData);
-                                            if ($evalResult['success']):
-                                                $eval = $evalResult['data'];
-                                        ?>
-                                            <div class="alert alert-warning">
-                                                <h6 class="mb-3"><strong>Hasil Evaluasi SOP Kerja</strong></h6>
-                                                
-                                                <div class="mb-3">
-                                                    <?php if ($eval['skor_total'] >= 85): ?>
-                                                        <span class="badge bg-success" style="font-size: 1.1rem; padding: 0.7rem;">LULUS</span>
-                                                    <?php elseif ($eval['skor_total'] >= 75): ?>
-                                                        <span class="badge bg-info" style="font-size: 1.1rem; padding: 0.7rem;">LULUS KONDISIONAL</span>
-                                                    <?php else: ?>
-                                                        <span class="badge bg-danger" style="font-size: 1.1rem; padding: 0.7rem;">TIDAK LULUS</span>
-                                                    <?php endif; ?>
-                                                </div>
-
-                                                <p class="mb-2"><strong>Status Keseluruhan:</strong> <?php echo $eval['status_keseluruhan']; ?></p>
-                                                <p><strong>Total Skor:</strong> <span style="font-size: 1.2rem; color: var(--secondary-color);"><?php echo $eval['skor_total']; ?> / 100</span></p>
-
-                                                <table class="table table-sm table-striped">
-                                                    <?php foreach ($eval['detail'] as $detail): ?>
-                                                        <tr>
-                                                            <td><strong><?php echo $detail['nama_kriteria']; ?></strong></td>
-                                                            <td>
-                                                                <span class="badge bg-primary"><?php echo $detail['skor']; ?></span>
-                                                                <small class="text-muted"><?php echo $detail['status']; ?></small>
-                                                            </td>
-                                                        </tr>
-                                                        <?php if (isset($detail['detail'])): ?>
-                                                            <tr>
-                                                                <td colspan="2"><small class="text-muted"><?php echo $detail['detail']; ?></small></td>
-                                                            </tr>
-                                                        <?php endif; ?>
-                                                    <?php endforeach; ?>
-                                                </table>
-                                            </div>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        <?php 
-            else:
-                echo '<div class="alert alert-danger">Staff tidak ditemukan!</div>';
-            endif;
-
-        endif; // END MODE VIEW
-        ?>
     </div>
 
-    <!-- BOOTSTRAP JS & CUSTOM JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Update form fields dynamically based on staff type
-        function updateFormFields() {
-            const jenisStaff = document.getElementById('jenisStaffForm').value;
-            const dinamicFields = document.getElementById('dinamicFields');
-            
-            let html = '';
+    <div class="panel-wrap">
 
-            if (jenisStaff === 'SupirTruk') {
-                html = `
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Nomor SIM B</label>
-                            <input type="text" class="form-control" name="nomor_sim_b" required placeholder="Nomor SIM B">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Uang Makan Jalan (Rp)</label>
-                            <input type="number" class="form-control" name="uang_makan_jalan" required placeholder="500000">
-                        </div>
+        <!-- ── PANEL KIRI: Info Staff ── -->
+        <div class="card-box">
+            <div class="card-box-header">
+                <i class="bi bi-person-badge"></i> Informasi Staff
+                <span class="jenis-badge <?php echo $bc; ?>" style="margin-left:auto;"><?php echo $jl; ?></span>
+            </div>
+            <div style="padding: 1rem 1.1rem;">
+                <!-- Inisial Avatar -->
+                <?php
+                    $namaParts = explode(' ', $staff['nama_lengkap']);
+                    $inisial   = strtoupper(substr($namaParts[0],0,1) . (isset($namaParts[1]) ? substr($namaParts[1],0,1) : ''));
+                ?>
+                <div style="display:flex;align-items:center;gap:0.9rem;margin-bottom:1rem;padding-bottom:0.9rem;border-bottom:1px solid var(--border);">
+                    <div style="width:46px;height:46px;border-radius:50%;background:var(--brand-light);color:var(--brand-dark);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0;">
+                        <?php echo $inisial; ?>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Rute Operasional</label>
-                            <input type="text" class="form-control" name="rute_operasional" required placeholder="Contoh: Jakarta-Bandung">
-                        </div>
+                    <div>
+                        <div style="font-weight:600;font-size:1rem;"><?php echo htmlspecialchars($staff['nama_lengkap']); ?></div>
+                        <div class="id-code"><?php echo htmlspecialchars($staff['id_staff_code']); ?></div>
                     </div>
-                `;
-            } else if (jenisStaff === 'AdminGudang') {
-                html = `
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Shift Kerja</label>
-                            <select class="form-select" name="shift_kerja" required>
-                                <option>-- Pilih Shift --</option>
-                                <option value="Pagi">Pagi</option>
-                                <option value="Siang">Siang</option>
-                                <option value="Malam">Malam</option>
-                            </select>
+                </div>
+
+                <!-- Atribut Enkapsulasi (dari Abstract Class) -->
+                <p style="font-size:0.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;">
+                    Atribut dari <code>StaffLogistik</code>
+                </p>
+                <table class="detail-table" style="width:100%;margin-bottom:1rem;">
+                    <tr><td>Gaji Pokok</td><td><strong>Rp <?php echo number_format($staff['gaji_pokok'],0,',','.'); ?></strong></td></tr>
+                    <tr><td>Jam Kerja</td><td><?php echo $staff['jam_kerja']; ?> jam / bulan</td></tr>
+                    <tr><td>Jenis Staff</td><td><span class="jenis-badge <?php echo $bc; ?>"><?php echo $jl; ?></span></td></tr>
+                </table>
+
+                <!-- Atribut Tambahan per Subclass -->
+                <p style="font-size:0.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;">
+                    Atribut tambahan <code><?php echo $staff['jenis_staff']; ?></code>
+                </p>
+                <table class="detail-table" style="width:100%;">
+                    <?php if ($staff['jenis_staff'] == 'SupirTruk'): ?>
+                        <tr><td>Nomor SIM B</td><td><?php echo htmlspecialchars($staff['nomor_sim_b'] ?? '-'); ?></td></tr>
+                        <tr><td>Uang Makan Jalan</td><td>Rp <?php echo number_format($staff['uang_makan_jalan'] ?? 0,0,',','.'); ?></td></tr>
+                        <tr><td>Rute Operasional</td><td><?php echo htmlspecialchars($staff['rute_tol'] ?? '-'); ?></td></tr>
+                    <?php elseif ($staff['jenis_staff'] == 'AdminGudang'): ?>
+                        <tr><td>Shift Kerja</td><td><?php echo htmlspecialchars($staff['shift_kerja'] ?? '-'); ?></td></tr>
+                        <tr><td>Zona Gudang</td><td><?php echo htmlspecialchars($staff['zona_gudang'] ?? '-'); ?></td></tr>
+                    <?php elseif ($staff['jenis_staff'] == 'KurirMotor'): ?>
+                        <tr><td>Plat Motor</td><td><?php echo htmlspecialchars($staff['plat_nomor_motor'] ?? '-'); ?></td></tr>
+                        <tr><td>Area Cakupan</td><td><?php echo htmlspecialchars($staff['area_cakupan'] ?? '-'); ?></td></tr>
+                    <?php endif; ?>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── PANEL KANAN: Polimorfisme ── -->
+        <div class="card-box">
+            <div class="card-box-header">
+                <i class="bi bi-cpu"></i> Method Polimorfisme
+            </div>
+            <div style="padding: 1rem 1.1rem;">
+
+                <!-- TAB NAV -->
+                <div class="tab-nav">
+                    <button class="tab-btn active" onclick="switchTab(this,'tab-thp')">
+                        <i class="bi bi-cash-stack"></i> hitungTakeHomePay()
+                    </button>
+                    <button class="tab-btn" onclick="switchTab(this,'tab-eval')">
+                        <i class="bi bi-clipboard2-check"></i> evaluasiSOPKerja()
+                    </button>
+                </div>
+
+                <!-- TAB: TAKE HOME PAY -->
+                <div id="tab-thp" class="tab-pane active">
+                    <?php if (!empty($thpData)): ?>
+                        <table class="thp-table">
+                            <tr>
+                                <td style="color:var(--muted);">Gaji Pokok</td>
+                                <td>Rp <?php echo number_format($thpData['gaji_pokok'],0,',','.'); ?></td>
+                            </tr>
+                            <?php if ($staff['jenis_staff'] == 'SupirTruk'): ?>
+                                <tr>
+                                    <td style="color:var(--muted);">+ Uang Makan Jalan</td>
+                                    <td>Rp <?php echo number_format($staff['uang_makan_jalan'] ?? 0,0,',','.'); ?></td>
+                                </tr>
+                                <tr>
+                                    <td style="color:var(--muted);">+ Tunjangan Lembur</td>
+                                    <td>Rp 0</td>
+                                </tr>
+                            <?php elseif ($staff['jenis_staff'] == 'AdminGudang'):
+                                $tunjShift = $thpData['gaji_pokok'] * ($staff['shift_kerja'] == 'Malam' ? 0.10 : 0.05);
+                            ?>
+                                <tr>
+                                    <td style="color:var(--muted);">+ Tunjangan Shift (<?php echo $staff['shift_kerja']; ?>)</td>
+                                    <td>Rp <?php echo number_format($tunjShift,0,',','.'); ?></td>
+                                </tr>
+                                <tr>
+                                    <td style="color:var(--muted);">+ Bonus Produktivitas</td>
+                                    <td>Rp 0</td>
+                                </tr>
+                            <?php elseif ($staff['jenis_staff'] == 'KurirMotor'): ?>
+                                <tr>
+                                    <td style="color:var(--muted);">+ Insentif Per Paket</td>
+                                    <td>Rp 0</td>
+                                </tr>
+                                <tr>
+                                    <td style="color:var(--muted);">+ Bonus Accuracy</td>
+                                    <td>Rp 0</td>
+                                </tr>
+                            <?php endif; ?>
+                            <tr style="border-top:1px solid var(--border);">
+                                <td style="padding-top:.6rem;font-weight:600;">Total Take Home Pay</td>
+                                <td style="padding-top:.6rem;" class="thp-total">Rp <?php echo number_format($thpData['take_home_pay'],0,',','.'); ?></td>
+                            </tr>
+                        </table>
+                        <p style="font-size:0.72rem;color:var(--muted);margin-top:.8rem;margin-bottom:0;">
+                            Override method <code>hitungTakeHomePay()</code> dari class <code><?php echo $staff['jenis_staff']; ?></code>
+                        </p>
+                    <?php else: ?>
+                        <p style="color:var(--muted);font-size:.83rem;">Data THP tidak tersedia.</p>
+                    <?php endif; ?>
+                </div>
+
+                <!-- TAB: EVALUASI SOP -->
+                <div id="tab-eval" class="tab-pane">
+                    <?php if (!empty($eval)): ?>
+                        <?php
+                            $skor = $eval['skor_total'];
+                            if ($skor >= 85) { $kelasEval = 'eval-lulus'; $labelEval = 'LULUS'; }
+                            elseif ($skor >= 75) { $kelasEval = 'eval-cond'; $labelEval = 'LULUS KONDISIONAL'; }
+                            else { $kelasEval = 'eval-gagal'; $labelEval = 'TIDAK LULUS'; }
+                        ?>
+                        <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.9rem;">
+                            <span class="<?php echo $kelasEval; ?>"><?php echo $labelEval; ?></span>
+                            <span style="font-size:1.1rem;font-weight:700;color:var(--brand);"><?php echo $skor; ?> / 100</span>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Zona Gudang</label>
-                            <input type="text" class="form-control" name="zona_gudang" required placeholder="Contoh: Zona A">
+                        <div style="margin-bottom:.5rem;">
+                            <?php foreach ($eval['detail'] as $det): ?>
+                                <div class="eval-row">
+                                    <div>
+                                        <div style="font-weight:500;"><?php echo $det['nama_kriteria']; ?></div>
+                                        <?php if (!empty($det['detail'])): ?>
+                                            <div style="font-size:.75rem;color:var(--muted);"><?php echo $det['detail']; ?></div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <span class="eval-skor"><?php echo $det['skor']; ?> &nbsp;<small style="font-weight:400;color:var(--muted);"><?php echo $det['status']; ?></small></span>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
-                    </div>
-                `;
-            } else if (jenisStaff === 'KurirMotor') {
-                html = `
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Plat Nomor Motor</label>
-                            <input type="text" class="form-control" name="plat_nomor_motor" required placeholder="Contoh: B 1234 XYZ">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Area Cakupan</label>
-                            <input type="text" class="form-control" name="area_cakupan" required placeholder="Contoh: Jakarta Pusat">
-                        </div>
-                    </div>
-                `;
-            }
+                        <p style="font-size:0.72rem;color:var(--muted);margin-top:.6rem;margin-bottom:0;">
+                            Override method <code>evaluasiSOPKerja()</code> dari class <code><?php echo $staff['jenis_staff']; ?></code>
+                        </p>
+                    <?php else: ?>
+                        <p style="color:var(--muted);font-size:.83rem;">Data evaluasi tidak tersedia.</p>
+                    <?php endif; ?>
+                </div>
 
-            dinamicFields.innerHTML = html;
-        }
+            </div><!-- /card body -->
+        </div><!-- /card kanan -->
+    </div><!-- /panel-wrap -->
 
-        // Filter table by search and jenis staff
-        document.getElementById('searchInput')?.addEventListener('keyup', filterTable);
-        document.getElementById('filterJenis')?.addEventListener('change', filterTable);
+<?php endif; // end staffData success ?>
 
-        function filterTable() {
-            const searchValue = document.getElementById('searchInput')?.value.toLowerCase() || '';
-            const filterValue = document.getElementById('filterJenis')?.value || '';
-            const rows = document.querySelectorAll('#staffTable tr');
+<?php
 
-            rows.forEach(row => {
-                const nama = row.cells[1]?.textContent.toLowerCase() || '';
-                const idCode = row.cells[0]?.textContent.toLowerCase() || '';
-                const jenis = row.cells[2]?.textContent || '';
+/* ============================================================
+   MODE: LIST
+   ============================================================ */
+else: // mode == list
 
-                const matchSearch = nama.includes(searchValue) || idCode.includes(searchValue);
-                const matchFilter = !filterValue || jenis.includes(filterValue);
+    $stats      = $staffManager->getStaffStatistics();
+    $statsData  = ($stats['success'] ?? false) ? $stats['data'] : [];
+    $totalStaff = ($stats['success'] ?? false) ? $stats['total'] : 0;
+    $staffResult = $staffManager->getAllStaff();
+    $staffList   = ($staffResult['success'] && count($staffResult['data']) > 0) ? $staffResult['data'] : [];
+?>
 
-                row.style.display = (matchSearch && matchFilter) ? '' : 'none';
-            });
-        }
-    </script>
+    <!-- OOP BANNER -->
+    <div class="oop-banner">
+        <div class="icon"><i class="bi bi-diagram-3-fill"></i></div>
+        <div>
+            <h6>Arsitektur OOP – Modul STAFF</h6>
+            <p>
+                <span class="pill">Abstract Class</span> <code>StaffLogistik</code> dengan atribut enkapsulasi:
+                <code>id_staff</code>, <code>namaLengkap</code>, <code>gajiPokok</code>, <code>jamKerja</code>.
+                Tiga subclass mewarisi dan meng-override method polimorfisme
+                <code>hitungTakeHomePay()</code> &amp; <code>evaluasiSOPKerja()</code>.
+            </p>
+        </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stat-row">
+        <div class="stat-card">
+            <div class="num" style="color:#856404;"><?php echo $statsData['SupirTruk'] ?? 0; ?></div>
+            <div class="lbl">Sopir Truk</div>
+            <span class="badge-type badge-supir">SupirTruk</span>
+        </div>
+        <div class="stat-card">
+            <div class="num" style="color:var(--brand);"><?php echo $statsData['AdminGudang'] ?? 0; ?></div>
+            <div class="lbl">Admin Gudang</div>
+            <span class="badge-type badge-admin">AdminGudang</span>
+        </div>
+        <div class="stat-card">
+            <div class="num" style="color:var(--accent);"><?php echo $statsData['KurirMotor'] ?? 0; ?></div>
+            <div class="lbl">Kurir Motor</div>
+            <span class="badge-type badge-kurir">KurirMotor</span>
+        </div>
+        <div class="stat-card">
+            <div class="num"><?php echo $totalStaff; ?></div>
+            <div class="lbl">Total Staff</div>
+        </div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="&#xF52A; Cari nama atau ID staff…">
+        <select id="filterJenis">
+            <option value="">Semua Subclass</option>
+            <option value="SupirTruk">SupirTruk</option>
+            <option value="AdminGudang">AdminGudang</option>
+            <option value="KurirMotor">KurirMotor</option>
+        </select>
+    </div>
+
+    <!-- TABLE -->
+    <div class="card-box">
+        <div class="card-box-header">
+            <i class="bi bi-list-ul"></i>
+            Daftar Instance – Subclass dari <code>StaffLogistik</code>
+            <span id="count-label" style="margin-left:auto;font-weight:400;font-size:0.78rem;color:var(--muted);">
+                <?php echo count($staffList); ?> staff
+            </span>
+        </div>
+        <table class="staff-table">
+            <thead>
+                <tr>
+                    <th>ID Code</th>
+                    <th>Nama Lengkap</th>
+                    <th>Subclass / Jenis</th>
+                    <th>Gaji Pokok</th>
+                    <th>Jam Kerja</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="staffTableBody">
+                <?php if (count($staffList) > 0):
+                    $badgeClass = ['SupirTruk' => 'badge-supir', 'AdminGudang' => 'badge-admin', 'KurirMotor' => 'badge-kurir'];
+                    foreach ($staffList as $s):
+                        $bc = $badgeClass[$s['jenis_staff']] ?? 'badge-admin';
+                ?>
+                    <tr data-nama="<?php echo strtolower(htmlspecialchars($s['nama_lengkap'])); ?>"
+                        data-id="<?php echo strtolower(htmlspecialchars($s['id_staff_code'])); ?>"
+                        data-jenis="<?php echo $s['jenis_staff']; ?>"
+                        onclick="window.location='?mode=view&id=<?php echo $s['id_staff']; ?>'">
+                        <td class="id-code"><?php echo htmlspecialchars($s['id_staff_code']); ?></td>
+                        <td class="nama"><?php echo htmlspecialchars($s['nama_lengkap']); ?></td>
+                        <td><span class="jenis-badge <?php echo $bc; ?>"><?php echo $s['jenis_staff']; ?></span></td>
+                        <td>Rp <?php echo number_format($s['gaji_pokok'],0,',','.'); ?></td>
+                        <td><?php echo $s['jam_kerja']; ?> jam</td>
+                        <td style="color:var(--brand);font-size:.8rem;white-space:nowrap;">
+                            Lihat detail <i class="bi bi-chevron-right" style="font-size:.7rem;"></i>
+                        </td>
+                    </tr>
+                <?php endforeach; else: ?>
+                    <tr class="empty-row">
+                        <td colspan="6"><i class="bi bi-inbox"></i> Belum ada data staff.</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+
+<?php endif; // end mode list ?>
+</div><!-- /page-wrap -->
+
+<script>
+/* ---- Filter tabel ---- */
+(function() {
+    const search = document.getElementById('searchInput');
+    const filter = document.getElementById('filterJenis');
+    const label  = document.getElementById('count-label');
+    if (!search) return;
+
+    function run() {
+        const q  = search.value.toLowerCase().trim();
+        const jf = filter.value;
+        const rows = document.querySelectorAll('#staffTableBody tr[data-nama]');
+        let visible = 0;
+        rows.forEach(r => {
+            const nm = r.dataset.nama || '';
+            const id = r.dataset.id  || '';
+            const jn = r.dataset.jenis || '';
+            const ok = (!q || nm.includes(q) || id.includes(q)) && (!jf || jn === jf);
+            r.style.display = ok ? '' : 'none';
+            if (ok) visible++;
+        });
+        if (label) label.textContent = visible + ' staff';
+    }
+
+    search.addEventListener('input', run);
+    filter.addEventListener('change', run);
+})();
+
+/* ---- Tab switcher ---- */
+function switchTab(btn, paneId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const pane = document.getElementById(paneId);
+    if (pane) pane.classList.add('active');
+}
+</script>
 </body>
 </html>

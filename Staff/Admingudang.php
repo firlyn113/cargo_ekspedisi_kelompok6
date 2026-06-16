@@ -1,249 +1,212 @@
 <?php
 /**
  * Subclass: AdminGudang
- * Turunan dari StaffLogistik untuk mengelola data admin gudang
- * Menerapkan: Inheritance, Enkapsulasi, Polimorfisme (Override Abstract Methods)
+ * Mewarisi StaffLogistik dan menambahkan atribut & logika khusus admin gudang.
+ *
+ * Atribut tambahan (sesuai spec):
+ *  - shiftKerja   (Pagi / Siang / Malam)
+ *  - zonaGudang
+ *
+ * Polimorfisme:
+ *  - hitungTakeHomePay() : Gaji Pokok + Tunjangan Shift + Bonus Produktivitas
+ *  - evaluasiSOPKerja()  : Keakuratan Data Entry, Kecepatan Pemrosesan,
+ *                          Kehadiran & Ketaatan Shift, Penguasaan Sistem
  */
 
 require_once 'StaffLogistik.php';
 
 class AdminGudang extends StaffLogistik {
-    
-    // ===== ENKAPSULASI: Private Attributes spesifik AdminGudang =====
-    private $shiftKerja;  // Pagi/Siang/Malam
-    private $zonaGudang;   // Zona gudang yang ditangani
-    private $jumlahBarangDiproses;
-    private $jumlahErrorAdministrasi;
-    
-    // ===== CONSTRUCTOR =====
+
+    // =====================================================
+    //  ENKAPSULASI — Atribut private khusus AdminGudang
+    // =====================================================
+    private $shiftKerja;
+    private $zonaGudang;
+
+    // Atribut metrik kinerja (diset sebelum evaluasi/THP dipanggil)
+    private $jumlahBarangDiproses    = 0;
+    private $jumlahErrorAdministrasi = 0;
+
+    // =====================================================
+    //  CONSTRUCTOR
+    // =====================================================
     public function __construct($conn) {
         parent::__construct($conn);
-        $this->jumlahBarangDiproses = 0;
-        $this->jumlahErrorAdministrasi = 0;
     }
-    
-    // ===== GETTER & SETTER untuk Atribut Spesifik =====
-    
-    public function setShiftKerja($shiftKerja) {
-        $this->shiftKerja = $shiftKerja;
-    }
-    
-    public function getShiftKerja() {
-        return $this->shiftKerja;
-    }
-    
-    public function setZonaGudang($zonaGudang) {
-        $this->zonaGudang = $zonaGudang;
-    }
-    
-    public function getZonaGudang() {
-        return $this->zonaGudang;
-    }
-    
-    public function setJumlahBarangDiproses($jumlah) {
-        $this->jumlahBarangDiproses = $jumlah;
-    }
-    
-    public function getJumlahBarangDiproses() {
-        return $this->jumlahBarangDiproses;
-    }
-    
-    public function setJumlahErrorAdministrasi($jumlah) {
-        $this->jumlahErrorAdministrasi = $jumlah;
-    }
-    
-    public function getJumlahErrorAdministrasi() {
-        return $this->jumlahErrorAdministrasi;
-    }
-    
-    // ===== IMPLEMENTASI ABSTRACT METHODS (POLIMORFISME) =====
-    
+
+    // =====================================================
+    //  GETTER & SETTER
+    // =====================================================
+    public function setShiftKerja($shift)       { $this->shiftKerja              = $shift;  }
+    public function getShiftKerja()             { return $this->shiftKerja;                 }
+
+    public function setZonaGudang($zona)        { $this->zonaGudang              = $zona;   }
+    public function getZonaGudang()             { return $this->zonaGudang;                 }
+
+    public function setJumlahBarangDiproses($n)    { $this->jumlahBarangDiproses    = $n; }
+    public function getJumlahBarangDiproses()      { return $this->jumlahBarangDiproses;   }
+
+    public function setJumlahErrorAdministrasi($n) { $this->jumlahErrorAdministrasi = $n; }
+    public function getJumlahErrorAdministrasi()   { return $this->jumlahErrorAdministrasi; }
+
+    // =====================================================
+    //  IMPLEMENTASI ABSTRACT METHODS (Polimorfisme)
+    // =====================================================
+
     /**
-     * POLIMORFISME 1: hitungTakeHomePay() - Khusus AdminGudang
-     * 
-     * Perhitungan: Gaji Pokok + Tunjangan Shift + Bonus Produktivitas Barang
-     * - Shift Pagi/Siang: 5% dari gaji pokok
-     * - Shift Malam: 10% dari gaji pokok (tunjangan malam)
-     * - Bonus: Rp 500 per barang yang diproses (dengan penalti error)
-     * 
-     * @return decimal Total gaji bawa pulang admin gudang
+     * hitungTakeHomePay() — Override untuk AdminGudang
+     *
+     * Rumus:
+     *   Tunjangan Shift  = 10% gaji pokok (Malam) | 5% (Pagi/Siang)
+     *   Bonus Produktivitas = (jumlahBarang × Rp500) − (jumlahError × Rp2.000)
+     *                         minimum Rp0
+     *   Take Home Pay = Gaji Pokok + Tunjangan Shift + Bonus Produktivitas
+     *
+     * @return float Total Take Home Pay
      */
     public function hitungTakeHomePay() {
         $gajiPokok = $this->getGajiPokok();
-        
+
         // Tunjangan shift
-        $tunjanganShift = 0;
-        if ($this->shiftKerja == 'Malam') {
-            $tunjanganShift = $gajiPokok * 0.10; // 10% untuk shift malam
-        } else {
-            $tunjanganShift = $gajiPokok * 0.05; // 5% untuk shift pagi/siang
-        }
-        
-        // Bonus produktivitas (Rp 500 per barang, dikurangi penalti error)
-        $bonusProduktivitas = ($this->jumlahBarangDiproses * 500) - ($this->jumlahErrorAdministrasi * 2000);
-        
-        // Pastikan bonus tidak negatif
-        if ($bonusProduktivitas < 0) {
-            $bonusProduktivitas = 0;
-        }
-        
-        // Total Take Home Pay
-        $totalTakeHome = $gajiPokok + $tunjanganShift + $bonusProduktivitas;
-        
-        return $totalTakeHome;
+        $tunjanganShift = ($this->shiftKerja === 'Malam')
+            ? $gajiPokok * 0.10   // 10% shift malam
+            : $gajiPokok * 0.05;  // 5%  shift pagi/siang
+
+        // Bonus produktivitas (tidak boleh negatif)
+        $bonusProduktivitas = max(
+            0,
+            ($this->jumlahBarangDiproses * 500)
+            - ($this->jumlahErrorAdministrasi * 2000)
+        );
+
+        return $gajiPokok + $tunjanganShift + $bonusProduktivitas;
     }
-    
+
     /**
-     * POLIMORFISME 2: evaluasiSOPKerja() - Khusus AdminGudang
-     * 
-     * Kriteria evaluasi untuk admin gudang:
-     * - Keakuratan Data Entry (error rate)
-     * - Kecepatan Pemrosesan Barang
-     * - Kehadiran & Ketaatan Shift
-     * - Penguasaan Sistem Informasi
-     * 
-     * @return array Hasil evaluasi dengan skor dan status
+     * evaluasiSOPKerja() — Override untuk AdminGudang
+     *
+     * Kriteria penilaian:
+     *  1. Keakuratan Data Entry      (maks 30 poin)
+     *  2. Kecepatan Pemrosesan       (maks 25 poin)  — target 50 barang/hari
+     *  3. Kehadiran & Ketaatan Shift (25 poin)
+     *  4. Penguasaan Sistem Informasi (20 poin)
+     *
+     * @return array Hasil evaluasi
      */
     public function evaluasiSOPKerja() {
         $evaluasi = [
-            'nama_staff' => $this->getNamaLengkap(),
+            'nama_staff'  => $this->getNamaLengkap(),
             'jenis_staff' => 'AdminGudang',
-            'skor_total' => 0,
-            'detail' => []
+            'skor_total'  => 0,
+            'detail'      => [],
         ];
-        
-        // Kriteria 1: Keakuratan Data Entry
-        // Error rate < 2% = 30 poin
-        $errorRate = $this->jumlahBarangDiproses > 0 
-            ? ($this->jumlahErrorAdministrasi / $this->jumlahBarangDiproses) * 100 
+
+        // --- Kriteria 1: Keakuratan Data Entry ---
+        $errorRate = ($this->jumlahBarangDiproses > 0)
+            ? ($this->jumlahErrorAdministrasi / $this->jumlahBarangDiproses) * 100
             : 0;
-        
-        $skor1 = 0;
-        if ($errorRate < 2) {
-            $skor1 = 30;
-            $status1 = 'SANGAT BAIK';
-        } elseif ($errorRate < 5) {
-            $skor1 = 20;
-            $status1 = 'BAIK';
-        } elseif ($errorRate < 10) {
-            $skor1 = 10;
-            $status1 = 'CUKUP';
-        } else {
-            $skor1 = 0;
-            $status1 = 'PERLU PERBAIKAN';
-        }
-        
-        $kriteria1 = [
+
+        if ($errorRate < 2)       { $skor1 = 30; $status1 = 'SANGAT BAIK'; }
+        elseif ($errorRate < 5)   { $skor1 = 20; $status1 = 'BAIK'; }
+        elseif ($errorRate < 10)  { $skor1 = 10; $status1 = 'CUKUP'; }
+        else                      { $skor1 = 0;  $status1 = 'PERLU PERBAIKAN'; }
+
+        $evaluasi['detail'][] = [
             'nama_kriteria' => 'Keakuratan Data Entry',
-            'skor' => $skor1,
-            'status' => $status1,
-            'detail' => "Error Rate: {$errorRate}%"
+            'skor'          => $skor1,
+            'status'        => $status1,
+            'detail'        => 'Error rate: ' . round($errorRate, 2) . '%',
         ];
-        $evaluasi['detail'][] = $kriteria1;
-        
-        // Kriteria 2: Kecepatan Pemrosesan
-        // Asumsi target 50 barang/hari
-        $kecepatanPersen = $this->jumlahBarangDiproses > 0 ? ($this->jumlahBarangDiproses / 50) * 100 : 0;
-        
-        $skor2 = 0;
-        if ($kecepatanPersen >= 100) {
-            $skor2 = 25;
-            $status2 = 'MENCAPAI TARGET';
-        } elseif ($kecepatanPersen >= 80) {
-            $skor2 = 20;
-            $status2 = 'HAMPIR MENCAPAI';
-        } else {
-            $skor2 = 15;
-            $status2 = 'DIBAWAH TARGET';
-        }
-        
-        $kriteria2 = [
+
+        // --- Kriteria 2: Kecepatan Pemrosesan (target 50 barang/hari) ---
+        $persen = ($this->jumlahBarangDiproses / 50) * 100;
+
+        if ($persen >= 100)      { $skor2 = 25; $status2 = 'MENCAPAI TARGET'; }
+        elseif ($persen >= 80)   { $skor2 = 20; $status2 = 'HAMPIR MENCAPAI'; }
+        else                     { $skor2 = 15; $status2 = 'DI BAWAH TARGET'; }
+
+        $evaluasi['detail'][] = [
             'nama_kriteria' => 'Kecepatan Pemrosesan',
-            'skor' => $skor2,
-            'status' => $status2,
-            'detail' => "{$kecepatanPersen}% dari target"
+            'skor'          => $skor2,
+            'status'        => $status2,
+            'detail'        => round($persen, 1) . '% dari target 50 barang/hari',
         ];
-        $evaluasi['detail'][] = $kriteria2;
-        
-        // Kriteria 3: Kehadiran & Ketaatan Shift
-        $kriteria3 = [
+
+        // --- Kriteria 3: Kehadiran & Ketaatan Shift ---
+        $evaluasi['detail'][] = [
             'nama_kriteria' => 'Kehadiran & Ketaatan Shift',
-            'skor' => 25,
-            'status' => 'TERPENUHI',
-            'detail' => "Shift: {$this->shiftKerja}"
+            'skor'          => 25,
+            'status'        => 'TERPENUHI',
+            'detail'        => 'Shift: ' . $this->shiftKerja,
         ];
-        $evaluasi['detail'][] = $kriteria3;
-        
-        // Kriteria 4: Penguasaan Sistem Informasi
-        $kriteria4 = [
+
+        // --- Kriteria 4: Penguasaan Sistem Informasi ---
+        $evaluasi['detail'][] = [
             'nama_kriteria' => 'Penguasaan Sistem Informasi',
-            'skor' => 20,
-            'status' => 'KOMPETEN',
-            'detail' => 'Zona: ' . $this->zonaGudang
+            'skor'          => 20,
+            'status'        => 'KOMPETEN',
+            'detail'        => 'Zona gudang: ' . $this->zonaGudang,
         ];
-        $evaluasi['detail'][] = $kriteria4;
-        
-        // Hitung total skor
-        foreach ($evaluasi['detail'] as $detail) {
-            $evaluasi['skor_total'] += $detail['skor'];
+
+        // Total skor
+        foreach ($evaluasi['detail'] as $k) {
+            $evaluasi['skor_total'] += $k['skor'];
         }
-        
-        // Tentukan status keseluruhan
-        if ($evaluasi['skor_total'] >= 85) {
-            $evaluasi['status_keseluruhan'] = 'LULUS - LAYAK PROMOSI';
-        } elseif ($evaluasi['skor_total'] >= 75) {
-            $evaluasi['status_keseluruhan'] = 'LULUS - SESUAI STANDAR';
-        } elseif ($evaluasi['skor_total'] >= 60) {
-            $evaluasi['status_keseluruhan'] = 'LULUS - PERLU PERBAIKAN';
-        } else {
-            $evaluasi['status_keseluruhan'] = 'TIDAK LULUS - PERLU PELATIHAN ULANG';
-        }
-        
+
+        // Status keseluruhan
+        if ($evaluasi['skor_total'] >= 85)      { $evaluasi['status_keseluruhan'] = 'LULUS – LAYAK PROMOSI'; }
+        elseif ($evaluasi['skor_total'] >= 75)  { $evaluasi['status_keseluruhan'] = 'LULUS – SESUAI STANDAR'; }
+        elseif ($evaluasi['skor_total'] >= 60)  { $evaluasi['status_keseluruhan'] = 'LULUS – PERLU PERBAIKAN'; }
+        else                                    { $evaluasi['status_keseluruhan'] = 'TIDAK LULUS – PERLU PELATIHAN ULANG'; }
+
         return $evaluasi;
     }
-    
+
     /**
-     * Override: getJenisStaff
+     * Override getJenisStaff
      */
     public function getJenisStaff() {
         return 'AdminGudang';
     }
-    
+
     /**
-     * Override: displayInfo - Tambah info spesifik AdminGudang
+     * Override displayInfo — tambahkan atribut spesifik AdminGudang
      */
     public function displayInfo() {
-        $baseInfo = parent::displayInfo();
-        $baseInfo['shift_kerja'] = $this->shiftKerja;
-        $baseInfo['zona_gudang'] = $this->zonaGudang;
-        $baseInfo['jumlah_barang_diproses'] = $this->jumlahBarangDiproses;
-        return $baseInfo;
+        $info = parent::displayInfo();
+        $info['shift_kerja'] = $this->shiftKerja;
+        $info['zona_gudang'] = $this->zonaGudang;
+        return $info;
     }
-    
+
     /**
-     * Simpan data AdminGudang ke database
+     * Simpan ke database
      */
     public function save() {
-    $sql = "INSERT INTO staff (id_staff_code, nama_lengkap, gaji_pokok, jam_kerja, jenis_staff, shift_kerja, zona_gudang) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)";
-    
-    $stmt = $this->getConn()->prepare($sql);
-    $jenisStaff = $this->getJenisStaff();
-    $gajiPokok = $this->getGajiPokok();
-    $jamKerja = $this->getJamKerja();
-    
-    // ✅ Langsung tulis tipe data tanpa fungsi
-    $stmt->bind_param("ssdssss", 
-        $this->getIdStaffCode(),
-        $this->getNamaLengkap(),
-        $gajiPokok,
-        $jamKerja,
-        $jenisStaff,
-        $this->shiftKerja,
-        $this->zonaGudang
-    );
-    
-    return $stmt->execute();
-}
+        $sql = "INSERT INTO staff
+                    (id_staff_code, nama_lengkap, gaji_pokok, jam_kerja,
+                     jenis_staff, shift_kerja, zona_gudang)
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        $stmt  = $this->getConn()->prepare($sql);
+        $idCode = $this->getIdStaffCode();
+        $nama  = $this->getNamaLengkap();
+        $gaji  = $this->getGajiPokok();
+        $jam   = $this->getJamKerja();
+        $jenis = $this->getJenisStaff();
+
+        $stmt->bind_param(
+            'ssdisss',
+            $idCode,
+            $nama,
+            $gaji,
+            $jam,
+            $jenis,
+            $this->shiftKerja,
+            $this->zonaGudang
+        );
+
+        return $stmt->execute();
+    }
 }
 ?>

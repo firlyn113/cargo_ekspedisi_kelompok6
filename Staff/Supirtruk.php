@@ -1,193 +1,181 @@
 <?php
 /**
  * Subclass: SupirTruk
- * Turunan dari StaffLogistik untuk mengelola data sopir truk
- * Menerapkan: Inheritance, Enkapsulasi, Polimorfisme (Override Abstract Methods)
+ * Mewarisi StaffLogistik dan menambahkan atribut & logika khusus sopir truk.
+ *
+ * Atribut tambahan (sesuai spec):
+ *  - nomorSIM_B
+ *  - uangMakanJalan
+ *
+ * Polimorfisme:
+ *  - hitungTakeHomePay() : Gaji Pokok + Uang Makan Jalan + Tunjangan Lembur
+ *  - evaluasiSOPKerja()  : Kelayakan SIM B, Riwayat Kecelakaan,
+ *                          Ketepatan Waktu, Kelengkapan Dokumen
  */
 
 require_once 'StaffLogistik.php';
 
 class SupirTruk extends StaffLogistik {
-    
-    // ===== ENKAPSULASI: Private Attributes spesifik SupirTruk =====
+
+    // =====================================================
+    //  ENKAPSULASI — Atribut private khusus SupirTruk
+    // =====================================================
     private $nomorSIM_B;
     private $uangMakanJalan;
-    private $ruteOperasional;
-    private $jumlahJamLembur;
-    
-    // ===== CONSTRUCTOR =====
+
+    // =====================================================
+    //  CONSTRUCTOR
+    // =====================================================
     public function __construct($conn) {
         parent::__construct($conn);
-        $this->jumlahJamLembur = 0;
     }
-    
-    // ===== GETTER & SETTER untuk Atribut Spesifik =====
-    
-    public function setNomorSIM_B($nomorSIM_B) {
-        $this->nomorSIM_B = $nomorSIM_B;
-    }
-    
-    public function getNomorSIM_B() {
-        return $this->nomorSIM_B;
-    }
-    
-    public function setUangMakanJalan($uangMakanJalan) {
-        $this->uangMakanJalan = $uangMakanJalan;
-    }
-    
-    public function getUangMakanJalan() {
-        return $this->uangMakanJalan;
-    }
-    
-    public function setRuteOperasional($ruteOperasional) {
-        $this->ruteOperasional = $ruteOperasional;
-    }
-    
-    public function getRuteOperasional() {
-        return $this->ruteOperasional;
-    }
-    
-    public function setJumlahJamLembur($jumlahJam) {
-        $this->jumlahJamLembur = $jumlahJam;
-    }
-    
-    public function getJumlahJamLembur() {
-        return $this->jumlahJamLembur;
-    }
-    
-    // ===== IMPLEMENTASI ABSTRACT METHODS (POLIMORFISME) =====
-    
+
+    // =====================================================
+    //  GETTER & SETTER
+    // =====================================================
+    public function setNomorSIM_B($nomor)        { $this->nomorSIM_B      = $nomor; }
+    public function getNomorSIM_B()              { return $this->nomorSIM_B;         }
+
+    public function setUangMakanJalan($nominal)  { $this->uangMakanJalan  = $nominal; }
+    public function getUangMakanJalan()          { return $this->uangMakanJalan;       }
+
+    // =====================================================
+    //  IMPLEMENTASI ABSTRACT METHODS (Polimorfisme)
+    // =====================================================
+
     /**
-     * POLIMORFISME 1: hitungTakeHomePay() - Khusus SupirTruk
-     * 
-     * Perhitungan: Gaji Pokok + Uang Makan Jalan + (Lembur * 25% Gaji Pokok per jam)
-     * 
-     * @return decimal Total gaji bawa pulang sopir truk
+     * hitungTakeHomePay() — Override untuk SupirTruk
+     *
+     * Rumus:
+     *   Take Home Pay = Gaji Pokok + Uang Makan Jalan
+     *
+     * Uang Makan Jalan sudah mencakup tunjangan perjalanan
+     * yang nilainya diinput per staff (bukan dihitung otomatis).
+     *
+     * @return float Total Take Home Pay
      */
     public function hitungTakeHomePay() {
-        // Ambil gaji pokok
-        $gajiPokok = $this->getGajiPokok();
-        $uangMakanJalan = $this->getUangMakanJalan();
-        
-        // Hitung tunjangan lembur (25% dari gaji per jam)
-        $tarifLemburPerJam = ($gajiPokok / 200) * 0.25; // Asumsi 200 jam kerja per bulan
-        $uangLembur = $this->jumlahJamLembur * $tarifLemburPerJam;
-        
-        // Total Take Home Pay
-        $totalTakeHome = $gajiPokok + $uangMakanJalan + $uangLembur;
-        
+        $gajiPokok      = $this->getGajiPokok();
+        $uangMakanJalan = $this->uangMakanJalan ?? 0;
+
+        $totalTakeHome  = $gajiPokok + $uangMakanJalan;
+
         return $totalTakeHome;
     }
-    
+
     /**
-     * POLIMORFISME 2: evaluasiSOPKerja() - Khusus SupirTruk
-     * 
-     * Kriteria evaluasi untuk sopir truk:
-     * - Kelayakan SIM B
-     * - Riwayat kecelakaan (diasumsikan 0 untuk sempurna)
-     * - Ketepatan waktu pengiriman
-     * - Kelengkapan dokumen
-     * 
-     * @return array Hasil evaluasi dengan skor dan status
+     * evaluasiSOPKerja() — Override untuk SupirTruk
+     *
+     * Kriteria penilaian:
+     *  1. Kelayakan SIM B           (25 poin)
+     *  2. Riwayat Kecelakaan        (25 poin)
+     *  3. Ketepatan Waktu Pengiriman (25 poin)
+     *  4. Kelengkapan Dokumen       (25 poin)
+     *
+     * @return array Hasil evaluasi
      */
     public function evaluasiSOPKerja() {
         $evaluasi = [
-            'nama_staff' => $this->getNamaLengkap(),
+            'nama_staff'  => $this->getNamaLengkap(),
             'jenis_staff' => 'SupirTruk',
-            'skor_total' => 0,
-            'detail' => []
+            'skor_total'  => 0,
+            'detail'      => [],
         ];
-        
+
         // Kriteria 1: Kelayakan SIM B
-        $kriteria1 = [
+        $simValid = !empty($this->nomorSIM_B);
+        $evaluasi['detail'][] = [
             'nama_kriteria' => 'Kelayakan SIM B',
-            'skor' => !empty($this->nomorSIM_B) ? 25 : 0,
-            'status' => !empty($this->nomorSIM_B) ? 'VALID' : 'TIDAK VALID'
+            'skor'          => $simValid ? 25 : 0,
+            'status'        => $simValid ? 'VALID' : 'TIDAK VALID',
+            'detail'        => $simValid ? 'No. SIM: ' . $this->nomorSIM_B : 'SIM B tidak terdaftar',
         ];
-        $evaluasi['detail'][] = $kriteria1;
-        
-        // Kriteria 2: Riwayat Kecelakaan (0 = sempurna)
-        $kriteria2 = [
+
+        // Kriteria 2: Riwayat Kecelakaan (diasumsikan bersih dari DB)
+        $evaluasi['detail'][] = [
             'nama_kriteria' => 'Riwayat Kecelakaan',
-            'skor' => 25,
-            'status' => 'BERSIH'
+            'skor'          => 25,
+            'status'        => 'BERSIH',
+            'detail'        => 'Tidak ada catatan kecelakaan',
         ];
-        $evaluasi['detail'][] = $kriteria2;
-        
-        // Kriteria 3: Ketepatan Waktu (diasumsikan 90%)
-        $kriteria3 = [
+
+        // Kriteria 3: Ketepatan Waktu Pengiriman
+        $evaluasi['detail'][] = [
             'nama_kriteria' => 'Ketepatan Waktu Pengiriman',
-            'skor' => 25,
-            'status' => 'MEMUASKAN'
+            'skor'          => 25,
+            'status'        => 'MEMUASKAN',
+            'detail'        => 'Rata-rata pengiriman tepat waktu',
         ];
-        $evaluasi['detail'][] = $kriteria3;
-        
+
         // Kriteria 4: Kelengkapan Dokumen
-        $kriteria4 = [
+        $evaluasi['detail'][] = [
             'nama_kriteria' => 'Kelengkapan Dokumen',
-            'skor' => 25,
-            'status' => 'LENGKAP'
+            'skor'          => 25,
+            'status'        => 'LENGKAP',
+            'detail'        => 'STNK, KIR, dan surat jalan tersedia',
         ];
-        $evaluasi['detail'][] = $kriteria4;
-        
-        // Hitung total skor
-        foreach ($evaluasi['detail'] as $detail) {
-            $evaluasi['skor_total'] += $detail['skor'];
+
+        // Total skor
+        foreach ($evaluasi['detail'] as $k) {
+            $evaluasi['skor_total'] += $k['skor'];
         }
-        
-        // Tentukan status keseluruhan
+
+        // Status keseluruhan
         if ($evaluasi['skor_total'] >= 90) {
-            $evaluasi['status_keseluruhan'] = 'LULUS - SIAP OPERASIONAL';
+            $evaluasi['status_keseluruhan'] = 'LULUS – SIAP OPERASIONAL';
         } elseif ($evaluasi['skor_total'] >= 75) {
             $evaluasi['status_keseluruhan'] = 'LULUS DENGAN CATATAN';
         } else {
-            $evaluasi['status_keseluruhan'] = 'TIDAK LULUS - PERLU PELATIHAN';
+            $evaluasi['status_keseluruhan'] = 'TIDAK LULUS – PERLU PELATIHAN';
         }
-        
+
         return $evaluasi;
     }
-    
+
     /**
-     * Override: getJenisStaff
+     * Override getJenisStaff
      */
     public function getJenisStaff() {
         return 'SupirTruk';
     }
-    
+
     /**
-     * Override: displayInfo - Tambah info spesifik SupirTruk
+     * Override displayInfo — tambahkan atribut spesifik SupirTruk
      */
     public function displayInfo() {
-        $baseInfo = parent::displayInfo();
-        $baseInfo['nomor_sim_b'] = $this->nomorSIM_B;
-        $baseInfo['uang_makan_jalan'] = $this->uangMakanJalan;
-        $baseInfo['rute_operasional'] = $this->ruteOperasional;
-        return $baseInfo;
+        $info = parent::displayInfo();
+        $info['nomor_sim_b']     = $this->nomorSIM_B;
+        $info['uang_makan_jalan'] = $this->uangMakanJalan;
+        return $info;
     }
-    
+
     /**
-     * Simpan data SupirTruk ke database
+     * Simpan ke database
      */
     public function save() {
-        $sql = "INSERT INTO staff (id_staff_code, nama_lengkap, gaji_pokok, jam_kerja, jenis_staff, nomor_sim_b, uang_makan_jalan, rute_tol) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        
-        $stmt = $this->getConn()->prepare($sql);
-        $jenisStaff = $this->getJenisStaff();
-        $gajiPokok = $this->getGajiPokok();
-        $jamKerja = $this->getJamKerja();
-        
-        $stmt->bind_param("ssdsssds", 
-            $this->getIdStaffCode(),
-            $this->getNamaLengkap(),
-            $gajiPokok,
-            $jamKerja,
-            $jenisStaff,
+        $sql = "INSERT INTO staff
+                    (id_staff_code, nama_lengkap, gaji_pokok, jam_kerja,
+                     jenis_staff, nomor_sim_b, uang_makan_jalan)
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        $stmt        = $this->getConn()->prepare($sql);
+        $idCode      = $this->getIdStaffCode();   // Tambahan: tetap butuh id_staff_code untuk DB
+        $nama        = $this->getNamaLengkap();
+        $gaji        = $this->getGajiPokok();
+        $jam         = $this->getJamKerja();
+        $jenis       = $this->getJenisStaff();
+
+        $stmt->bind_param(
+            'ssdisd d',
+            $idCode,
+            $nama,
+            $gaji,
+            $jam,
+            $jenis,
             $this->nomorSIM_B,
-            $this->uangMakanJalan,
-            $this->ruteOperasional
+            $this->uangMakanJalan
         );
-        
+
         return $stmt->execute();
     }
 }

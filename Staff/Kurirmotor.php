@@ -1,259 +1,215 @@
 <?php
 /**
  * Subclass: KurirMotor
- * Turunan dari StaffLogistik untuk mengelola data kurir motor
- * Menerapkan: Inheritance, Enkapsulasi, Polimorfisme (Override Abstract Methods)
+ * Mewarisi StaffLogistik dan menambahkan atribut & logika khusus kurir motor.
+ *
+ * Atribut tambahan (sesuai spec):
+ *  - platNomorMotor
+ *  - areaCakupan
+ *
+ * Polimorfisme:
+ *  - hitungTakeHomePay() : Gaji Pokok + Insentif Per Paket + Bonus Accuracy
+ *  - evaluasiSOPKerja()  : Akurasi Pengiriman, Ketepatan Waktu,
+ *                          Penampilan & Presentasi, Kepuasan Pelanggan
  */
 
 require_once 'StaffLogistik.php';
 
 class KurirMotor extends StaffLogistik {
-    
-    // ===== ENKAPSULASI: Private Attributes spesifik KurirMotor =====
+
+    // =====================================================
+    //  ENKAPSULASI — Atribut private khusus KurirMotor
+    // =====================================================
     private $platNomorMotor;
-    private $areaCakupan;  // Wilayah operasional
-    private $jumlahPaketAntar;
-    private $jumlahPaketTerima;
-    private $persentaseAccuracy;
-    
-    // ===== CONSTRUCTOR =====
+    private $areaCakupan;
+
+    // Atribut metrik kinerja (diset sebelum evaluasi/THP dipanggil)
+    private $jumlahPaketAntar  = 0;
+    private $jumlahPaketTerima = 0;
+    private $persentaseAccuracy = 100;
+
+    // =====================================================
+    //  CONSTRUCTOR
+    // =====================================================
     public function __construct($conn) {
         parent::__construct($conn);
-        $this->jumlahPaketAntar = 0;
-        $this->jumlahPaketTerima = 0;
-        $this->persentaseAccuracy = 100;
     }
-    
-    // ===== GETTER & SETTER untuk Atribut Spesifik =====
-    
-    public function setPlatNomorMotor($platNomorMotor) {
-        $this->platNomorMotor = $platNomorMotor;
-    }
-    
-    public function getPlatNomorMotor() {
-        return $this->platNomorMotor;
-    }
-    
-    public function setAreaCakupan($areaCakupan) {
-        $this->areaCakupan = $areaCakupan;
-    }
-    
-    public function getAreaCakupan() {
-        return $this->areaCakupan;
-    }
-    
-    public function setJumlahPaketAntar($jumlah) {
-        $this->jumlahPaketAntar = $jumlah;
-    }
-    
-    public function getJumlahPaketAntar() {
-        return $this->jumlahPaketAntar;
-    }
-    
-    public function setJumlahPaketTerima($jumlah) {
-        $this->jumlahPaketTerima = $jumlah;
-    }
-    
-    public function getJumlahPaketTerima() {
-        return $this->jumlahPaketTerima;
-    }
-    
-    public function setPersentaseAccuracy($persen) {
-        $this->persentaseAccuracy = $persen;
-    }
-    
-    public function getPersentaseAccuracy() {
-        return $this->persentaseAccuracy;
-    }
-    
-    // ===== IMPLEMENTASI ABSTRACT METHODS (POLIMORFISME) =====
-    
+
+    // =====================================================
+    //  GETTER & SETTER
+    // =====================================================
+    public function setPlatNomorMotor($plat)    { $this->platNomorMotor   = $plat;  }
+    public function getPlatNomorMotor()         { return $this->platNomorMotor;      }
+
+    public function setAreaCakupan($area)       { $this->areaCakupan      = $area;  }
+    public function getAreaCakupan()            { return $this->areaCakupan;         }
+
+    public function setJumlahPaketAntar($n)     { $this->jumlahPaketAntar   = $n;  }
+    public function getJumlahPaketAntar()       { return $this->jumlahPaketAntar;   }
+
+    public function setJumlahPaketTerima($n)    { $this->jumlahPaketTerima  = $n;  }
+    public function getJumlahPaketTerima()      { return $this->jumlahPaketTerima;  }
+
+    public function setPersentaseAccuracy($pct) { $this->persentaseAccuracy = $pct; }
+    public function getPersentaseAccuracy()     { return $this->persentaseAccuracy;  }
+
+    // =====================================================
+    //  IMPLEMENTASI ABSTRACT METHODS (Polimorfisme)
+    // =====================================================
+
     /**
-     * POLIMORFISME 1: hitungTakeHomePay() - Khusus KurirMotor
-     * 
-     * Perhitungan: Gaji Pokok + Insentif Per Paket + Bonus Accuracy
-     * - Gaji base (fixed)
-     * - Insentif: Rp 2,000 per paket antar sukses
-     * - Bonus Accuracy: Jika accuracy >= 95% maka bonus 5% gaji pokok
-     * 
-     * @return decimal Total gaji bawa pulang kurir motor
+     * hitungTakeHomePay() — Override untuk KurirMotor
+     *
+     * Rumus:
+     *   Insentif per paket = jumlahPaketAntar × Rp2.000
+     *   Bonus accuracy     = 5% gaji pokok (accuracy ≥ 95%)
+     *                      | 2% gaji pokok (accuracy ≥ 85%)
+     *                      | Rp0           (di bawah 85%)
+     *   Take Home Pay = Gaji Pokok + Insentif per Paket + Bonus Accuracy
+     *
+     * @return float Total Take Home Pay
      */
     public function hitungTakeHomePay() {
-        $gajiPokok = $this->getGajiPokok();
-        
-        // Insentif per paket antar (Rp 2,000)
+        $gajiPokok        = $this->getGajiPokok();
         $insentifPerPaket = $this->jumlahPaketAntar * 2000;
-        
-        // Bonus accuracy (jika >= 95%)
-        $bonusAccuracy = 0;
+
         if ($this->persentaseAccuracy >= 95) {
-            $bonusAccuracy = $gajiPokok * 0.05; // 5% bonus
+            $bonusAccuracy = $gajiPokok * 0.05;
         } elseif ($this->persentaseAccuracy >= 85) {
-            $bonusAccuracy = $gajiPokok * 0.02; // 2% bonus
+            $bonusAccuracy = $gajiPokok * 0.02;
+        } else {
+            $bonusAccuracy = 0;
         }
-        
-        // Total Take Home Pay
-        $totalTakeHome = $gajiPokok + $insentifPerPaket + $bonusAccuracy;
-        
-        return $totalTakeHome;
+
+        return $gajiPokok + $insentifPerPaket + $bonusAccuracy;
     }
-    
+
     /**
-     * POLIMORFISME 2: evaluasiSOPKerja() - Khusus KurirMotor
-     * 
-     * Kriteria evaluasi untuk kurir motor:
-     * - Akurasi Pengiriman (tepat lokasi, tepat orang)
-     * - Ketepatan Waktu Pengiriman
-     * - Penampilan & Presentasi Diri
-     * - Kepuasan Pelanggan & Feedback Positif
-     * 
-     * @return array Hasil evaluasi dengan skor dan status
+     * evaluasiSOPKerja() — Override untuk KurirMotor
+     *
+     * Kriteria penilaian:
+     *  1. Akurasi Pengiriman          (maks 30 poin)
+     *  2. Ketepatan Waktu Pengiriman  (25 poin)
+     *  3. Penampilan & Presentasi Diri (20 poin)
+     *  4. Kepuasan Pelanggan          (maks 25 poin)
+     *
+     * @return array Hasil evaluasi
      */
     public function evaluasiSOPKerja() {
         $evaluasi = [
-            'nama_staff' => $this->getNamaLengkap(),
+            'nama_staff'  => $this->getNamaLengkap(),
             'jenis_staff' => 'KurirMotor',
-            'skor_total' => 0,
-            'detail' => []
+            'skor_total'  => 0,
+            'detail'      => [],
         ];
-        
-        // Kriteria 1: Akurasi Pengiriman
-        $akurasi = $this->persentaseAccuracy;
-        
-        $skor1 = 0;
-        if ($akurasi >= 99) {
-            $skor1 = 30;
-            $status1 = 'SEMPURNA';
-        } elseif ($akurasi >= 95) {
-            $skor1 = 25;
-            $status1 = 'SANGAT BAIK';
-        } elseif ($akurasi >= 90) {
-            $skor1 = 20;
-            $status1 = 'BAIK';
-        } elseif ($akurasi >= 85) {
-            $skor1 = 15;
-            $status1 = 'CUKUP';
-        } else {
-            $skor1 = 0;
-            $status1 = 'PERLU PERBAIKAN';
-        }
-        
-        $kriteria1 = [
+
+        // --- Kriteria 1: Akurasi Pengiriman ---
+        $acc = $this->persentaseAccuracy;
+
+        if ($acc >= 99)       { $skor1 = 30; $st1 = 'SEMPURNA'; }
+        elseif ($acc >= 95)   { $skor1 = 25; $st1 = 'SANGAT BAIK'; }
+        elseif ($acc >= 90)   { $skor1 = 20; $st1 = 'BAIK'; }
+        elseif ($acc >= 85)   { $skor1 = 15; $st1 = 'CUKUP'; }
+        else                  { $skor1 = 0;  $st1 = 'PERLU PERBAIKAN'; }
+
+        $evaluasi['detail'][] = [
             'nama_kriteria' => 'Akurasi Pengiriman',
-            'skor' => $skor1,
-            'status' => $status1,
-            'detail' => "Akurasi: {$akurasi}%"
+            'skor'          => $skor1,
+            'status'        => $st1,
+            'detail'        => 'Akurasi: ' . $acc . '%',
         ];
-        $evaluasi['detail'][] = $kriteria1;
-        
-        // Kriteria 2: Ketepatan Waktu Pengiriman
-        // Target: Semua paket selesai dalam SLA (asumsi tercapai)
-        $kriteria2 = [
+
+        // --- Kriteria 2: Ketepatan Waktu ---
+        $evaluasi['detail'][] = [
             'nama_kriteria' => 'Ketepatan Waktu Pengiriman',
-            'skor' => 25,
-            'status' => 'SESUAI SLA',
-            'detail' => 'Semua pengiriman tepat waktu'
+            'skor'          => 25,
+            'status'        => 'SESUAI SLA',
+            'detail'        => 'Semua pengiriman tepat waktu',
         ];
-        $evaluasi['detail'][] = $kriteria2;
-        
-        // Kriteria 3: Penampilan & Presentasi Diri
-        $kriteria3 = [
+
+        // --- Kriteria 3: Penampilan & Presentasi Diri ---
+        $evaluasi['detail'][] = [
             'nama_kriteria' => 'Penampilan & Presentasi Diri',
-            'skor' => 20,
-            'status' => 'PROFESIONAL',
-            'detail' => "Motor: {$this->platNomorMotor}"
+            'skor'          => 20,
+            'status'        => 'PROFESIONAL',
+            'detail'        => 'Motor: ' . $this->platNomorMotor,
         ];
-        $evaluasi['detail'][] = $kriteria3;
-        
-        // Kriteria 4: Kepuasan Pelanggan
-        // Rating berdasarkan jumlah paket terima vs antar
-        $successRate = $this->jumlahPaketAntar > 0 
-            ? ($this->jumlahPaketTerima / $this->jumlahPaketAntar) * 100 
+
+        // --- Kriteria 4: Kepuasan Pelanggan (success rate paket) ---
+        $successRate = ($this->jumlahPaketAntar > 0)
+            ? ($this->jumlahPaketTerima / $this->jumlahPaketAntar) * 100
             : 0;
-        
-        $skor4 = 0;
-        if ($successRate >= 98) {
-            $skor4 = 25;
-            $status4 = 'TERPUASKAN';
-        } elseif ($successRate >= 95) {
-            $skor4 = 20;
-            $status4 = 'MEMUASKAN';
-        } else {
-            $skor4 = 15;
-            $status4 = 'CUKUP MEMUASKAN';
-        }
-        
-        $kriteria4 = [
+
+        if ($successRate >= 98)      { $skor4 = 25; $st4 = 'TERPUASKAN'; }
+        elseif ($successRate >= 95)  { $skor4 = 20; $st4 = 'MEMUASKAN'; }
+        else                         { $skor4 = 15; $st4 = 'CUKUP MEMUASKAN'; }
+
+        $evaluasi['detail'][] = [
             'nama_kriteria' => 'Kepuasan Pelanggan',
-            'skor' => $skor4,
-            'status' => $status4,
-            'detail' => "Success Rate: {$successRate}%"
+            'skor'          => $skor4,
+            'status'        => $st4,
+            'detail'        => 'Success rate: ' . round($successRate, 1) . '%',
         ];
-        $evaluasi['detail'][] = $kriteria4;
-        
-        // Hitung total skor
-        foreach ($evaluasi['detail'] as $detail) {
-            $evaluasi['skor_total'] += $detail['skor'];
+
+        // Total skor
+        foreach ($evaluasi['detail'] as $k) {
+            $evaluasi['skor_total'] += $k['skor'];
         }
-        
-        // Tentukan status keseluruhan
-        if ($evaluasi['skor_total'] >= 95) {
-            $evaluasi['status_keseluruhan'] = 'LULUS - KARYAWAN BINTANG';
-        } elseif ($evaluasi['skor_total'] >= 85) {
-            $evaluasi['status_keseluruhan'] = 'LULUS - SANGAT MEMUASKAN';
-        } elseif ($evaluasi['skor_total'] >= 75) {
-            $evaluasi['status_keseluruhan'] = 'LULUS - MEMUASKAN';
-        } else {
-            $evaluasi['status_keseluruhan'] = 'TIDAK LULUS - BUTUH IMPROVEMENT';
-        }
-        
+
+        // Status keseluruhan
+        if ($evaluasi['skor_total'] >= 95)      { $evaluasi['status_keseluruhan'] = 'LULUS – KARYAWAN BINTANG'; }
+        elseif ($evaluasi['skor_total'] >= 85)  { $evaluasi['status_keseluruhan'] = 'LULUS – SANGAT MEMUASKAN'; }
+        elseif ($evaluasi['skor_total'] >= 75)  { $evaluasi['status_keseluruhan'] = 'LULUS – MEMUASKAN'; }
+        else                                    { $evaluasi['status_keseluruhan'] = 'TIDAK LULUS – BUTUH IMPROVEMENT'; }
+
         return $evaluasi;
     }
-    
+
     /**
-     * Override: getJenisStaff
+     * Override getJenisStaff
      */
     public function getJenisStaff() {
         return 'KurirMotor';
     }
-    
+
     /**
-     * Override: displayInfo - Tambah info spesifik KurirMotor
+     * Override displayInfo — tambahkan atribut spesifik KurirMotor
      */
     public function displayInfo() {
-        $baseInfo = parent::displayInfo();
-        $baseInfo['plat_nomor_motor'] = $this->platNomorMotor;
-        $baseInfo['area_cakupan'] = $this->areaCakupan;
-        $baseInfo['jumlah_paket_antar'] = $this->jumlahPaketAntar;
-        $baseInfo['jumlah_paket_terima'] = $this->jumlahPaketTerima;
-        return $baseInfo;
+        $info = parent::displayInfo();
+        $info['plat_nomor_motor'] = $this->platNomorMotor;
+        $info['area_cakupan']     = $this->areaCakupan;
+        return $info;
     }
-    
-    /**
-     * Simpan data KurirMotor ke database
-     */
-   public function save() {
-    $sql = "INSERT INTO staff (id_staff_code, nama_lengkap, gaji_pokok, jam_kerja, jenis_staff, plat_nomor_motor, area_cakupan) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)";
-    
-    $stmt = $this->getConn()->prepare($sql);
-    $jenisStaff = $this->getJenisStaff();
-    $gajiPokok = $this->getGajiPokok();
-    $jamKerja = $this->getJamKerja();
-    
-    // ✅ Langsung tulis tipe data tanpa fungsi
-    $stmt->bind_param("ssdssss", 
-        $this->getIdStaffCode(),
-        $this->getNamaLengkap(),
-        $gajiPokok,
-        $jamKerja,
-        $jenisStaff,
-        $this->platNomorMotor,
-        $this->areaCakupan
-    );
-    
-    return $stmt->execute();
 
+    /**
+     * Simpan ke database
+     */
+    public function save() {
+        $sql = "INSERT INTO staff
+                    (id_staff_code, nama_lengkap, gaji_pokok, jam_kerja,
+                     jenis_staff, plat_nomor_motor, area_cakupan)
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        $stmt  = $this->getConn()->prepare($sql);
+        $idCode = $this->getIdStaffCode();
+        $nama  = $this->getNamaLengkap();
+        $gaji  = $this->getGajiPokok();
+        $jam   = $this->getJamKerja();
+        $jenis = $this->getJenisStaff();
+
+        $stmt->bind_param(
+            'ssdisss',
+            $idCode,
+            $nama,
+            $gaji,
+            $jam,
+            $jenis,
+            $this->platNomorMotor,
+            $this->areaCakupan
+        );
+
+        return $stmt->execute();
     }
 }
 ?>
