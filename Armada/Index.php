@@ -29,22 +29,48 @@ if (isset($_GET['delete'])) {
 
 // Handle create
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'create') {
-    $kode = mysqli_real_escape_string($koneksi, $_POST['kode_armada']);
-    $nama = mysqli_real_escape_string($koneksi, $_POST['nama_armada']);
+    $kode = mysqli_real_escape_string($koneksi, $_POST['id_armada_code']);
     $jenis = mysqli_real_escape_string($koneksi, $_POST['jenis_armada']);
-    $sub_jenis = mysqli_real_escape_string($koneksi, $_POST['sub_jenis_armada']);
-    $kapasitas = intval($_POST['kapasitas']);
-    $status = mysqli_real_escape_string($koneksi, $_POST['status']);
-    $lokasi = mysqli_real_escape_string($koneksi, $_POST['lokasi']);
+    $kapasitas = floatval($_POST['kapasitas_maksimal_kg']);
+    $status = mysqli_real_escape_string($koneksi, $_POST['status_kelaikan']);
+    $biaya = floatval($_POST['biaya_operasional_dasar']);
+    $jumlah_roda = intval($_POST['jumlah_roda']);
+    $rute_tol = mysqli_real_escape_string($koneksi, $_POST['rute_tol']);
+    $nama_dermaga = mysqli_real_escape_string($koneksi, $_POST['nama_dermaga']);
+    $jenis_kontainer = mysqli_real_escape_string($koneksi, $_POST['jenis_kontainer']);
+    $batas_ketinggian = floatval($_POST['batas_ketinggian']);
+    $izin_penerbangan = mysqli_real_escape_string($koneksi, $_POST['izin_penerbangan_khusus']);
     
     // Validasi kapasitas tidak boleh negatif atau 0
     if ($kapasitas <= 0) {
         $message = "Kapasitas harus lebih dari 0 Kg!";
         $messageType = "danger";
     } else {
-        // PERHATIAN: Gunakan 'code_armada' karena di database Anda pakai 'code_armada'
-        $sql = "INSERT INTO armada (id_armada_code, nama_armada, jenis_armada, sub_jenis, kapasitas, status, lokasi) 
-                VALUES ('$kode', '$nama', '$jenis', '$sub_jenis', '$kapasitas', '$status', '$lokasi')";
+        $sql = "INSERT INTO armada (
+                    id_armada_code, 
+                    jenis_armada, 
+                    kapasitas_maksimal_kg, 
+                    status_kelaikan, 
+                    biaya_operasional_dasar, 
+                    jumlah_roda, 
+                    rute_tol, 
+                    nama_dermaga, 
+                    jenis_kontainer, 
+                    batas_ketinggian, 
+                    izin_penerbangan_khusus
+                ) VALUES (
+                    '$kode', 
+                    '$jenis', 
+                    '$kapasitas', 
+                    '$status', 
+                    '$biaya', 
+                    '$jumlah_roda', 
+                    '$rute_tol', 
+                    '$nama_dermaga', 
+                    '$jenis_kontainer', 
+                    '$batas_ketinggian', 
+                    '$izin_penerbangan'
+                )";
         
         if ($koneksi->query($sql)) {
             $message = "Armada berhasil ditambahkan!";
@@ -64,7 +90,7 @@ if (isset($_GET['message'])) {
     $messageType = isset($_GET['type']) ? $_GET['type'] : 'success';
 }
 
-// Get all armada - PERHATIAN: gunakan 'code_armada'
+// Get all armada
 $sql = "SELECT * FROM armada ORDER BY created_at DESC";
 $result = $koneksi->query($sql);
 ?>
@@ -187,32 +213,27 @@ $result = $koneksi->query($sql);
             background: #c0392b;
         }
 
-        .badge-darat {
+        .badge-truk {
             background-color: #3498db;
             color: white;
         }
         
-        .badge-laut {
+        .badge-kapal {
             background-color: #1abc9c;
             color: white;
         }
         
-        .badge-udara {
+        .badge-pesawat {
             background-color: #9b59b6;
             color: white;
         }
         
-        .badge-tersedia {
+        .badge-laik {
             background-color: #27ae60;
             color: white;
         }
         
-        .badge-perawatan {
-            background-color: #f39c12;
-            color: white;
-        }
-        
-        .badge-disewa {
+        .badge-tidak-laik {
             background-color: #e74c3c;
             color: white;
         }
@@ -276,11 +297,11 @@ $result = $koneksi->query($sql);
                                 <thead>
                                     <tr>
                                         <th>Kode</th>
-                                        <th>Nama Armada</th>
                                         <th>Jenis Armada</th>
                                         <th>Kapasitas (Kg)</th>
                                         <th>Status</th>
-                                        <th>Lokasi</th>
+                                        <th>Biaya Operasional</th>
+                                        <th>Lokasi/Dermaga</th>
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
@@ -288,41 +309,47 @@ $result = $koneksi->query($sql);
                                     <?php if ($result && $result->num_rows > 0): ?>
                                         <?php while ($row = $result->fetch_assoc()): ?>
                                         <tr>
-                                            <!-- PERHATIAN: gunakan 'code_armada' -->
-                                            <td><strong><?= htmlspecialchars($row['code_armada']) ?></strong></td>
-                                            <td><?= htmlspecialchars($row['nama_armada']) ?></td>
+                                            <td><strong><?= htmlspecialchars($row['id_armada_code']) ?></strong></td>
                                             <td>
                                                 <?php
-                                                $jenisClass = 'badge-secondary';
-                                                $icon = '';
-                                                if ($row['jenis_armada'] == 'Darat') {
-                                                    $jenisClass = 'badge-darat';
-                                                    $icon = '🚛';
-                                                } else if ($row['jenis_armada'] == 'Laut') {
-                                                    $jenisClass = 'badge-laut';
+                                                $jenisClass = 'badge-truk';
+                                                $icon = '🚛';
+                                                $label = 'Truk Darat';
+                                                if ($row['jenis_armada'] == 'KapalLaut') {
+                                                    $jenisClass = 'badge-kapal';
                                                     $icon = '🚢';
-                                                } else if ($row['jenis_armada'] == 'Udara') {
-                                                    $jenisClass = 'badge-udara';
+                                                    $label = 'Kapal Laut';
+                                                } else if ($row['jenis_armada'] == 'PesawatKargo') {
+                                                    $jenisClass = 'badge-pesawat';
                                                     $icon = '✈️';
+                                                    $label = 'Pesawat Kargo';
                                                 }
                                                 ?>
                                                 <span class="badge <?= $jenisClass ?>" style="font-size:0.9rem;">
-                                                    <?= $icon ?> <?= htmlspecialchars($row['sub_jenis']) ?>
+                                                    <?= $icon ?> <?= $label ?>
                                                 </span>
                                             </td>
-                                            <td><?= number_format($row['kapasitas'], 0, ',', '.') ?></td>
+                                            <td><?= number_format($row['kapasitas_maksimal_kg'], 0, ',', '.') ?></td>
                                             <td>
                                                 <?php
-                                                $statusClass = 'badge-secondary';
-                                                if ($row['status'] == 'Tersedia') $statusClass = 'badge-tersedia';
-                                                else if ($row['status'] == 'Dalam Perawatan') $statusClass = 'badge-perawatan';
-                                                else if ($row['status'] == 'Disewa') $statusClass = 'badge-disewa';
+                                                $statusClass = $row['status_kelaikan'] == 'Laik' ? 'badge-laik' : 'badge-tidak-laik';
                                                 ?>
                                                 <span class="badge <?= $statusClass ?>">
-                                                    <?= htmlspecialchars($row['status']) ?>
+                                                    <?= htmlspecialchars($row['status_kelaikan']) ?>
                                                 </span>
                                             </td>
-                                            <td><?= htmlspecialchars($row['lokasi']) ?></td>
+                                            <td>Rp <?= number_format($row['biaya_operasional_dasar'], 0, ',', '.') ?></td>
+                                            <td>
+                                                <?php 
+                                                if ($row['jenis_armada'] == 'TrukDarat') {
+                                                    echo htmlspecialchars($row['rute_tol']);
+                                                } else if ($row['jenis_armada'] == 'KapalLaut') {
+                                                    echo htmlspecialchars($row['nama_dermaga']);
+                                                } else if ($row['jenis_armada'] == 'PesawatKargo') {
+                                                    echo htmlspecialchars($row['izin_penerbangan_khusus']);
+                                                }
+                                                ?>
+                                            </td>
                                             <td>
                                                 <a href="?edit=<?= $row['id_armada'] ?>" class="btn btn-sm btn-info">
                                                     <i class="fas fa-edit"></i> Edit
@@ -353,7 +380,7 @@ $result = $koneksi->query($sql);
     
     <!-- Add Armada Modal -->
     <div class="modal fade" id="addArmadaModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <form method="POST" onsubmit="return validateForm()">
                     <div class="modal-header">
@@ -362,46 +389,85 @@ $result = $koneksi->query($sql);
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="action" value="create">
-                        <div class="mb-3">
-                            <label class="form-label">Kode Armada</label>
-                            <input type="text" class="form-control" name="kode_armada" required placeholder="Contoh: TRK-001">
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Kode Armada</label>
+                                <input type="text" class="form-control" name="id_armada_code" required placeholder="Contoh: TRK-001">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Jenis Armada</label>
+                                <select class="form-select" name="jenis_armada" id="jenisArmada" required onchange="toggleFields()">
+                                    <option value="">Pilih Jenis Armada</option>
+                                    <option value="TrukDarat">🚛 Truk Darat</option>
+                                    <option value="KapalLaut">🚢 Kapal Laut</option>
+                                    <option value="PesawatKargo">✈️ Pesawat Kargo</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Nama Armada</label>
-                            <input type="text" class="form-control" name="nama_armada" required placeholder="Nama armada">
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Kapasitas Maksimal (Kg)</label>
+                                <input type="number" class="form-control" name="kapasitas_maksimal_kg" id="kapasitas" required min="1" step="0.01" placeholder="Kapasitas dalam Kg">
+                                <small class="text-muted">Minimal 1 Kg</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Status Kelaikan</label>
+                                <select class="form-select" name="status_kelaikan" required>
+                                    <option value="Laik">✅ Laik</option>
+                                    <option value="Tidak Laik">❌ Tidak Laik</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Jenis Armada</label>
-                            <select class="form-select" name="jenis_armada" id="jenisArmada" required onchange="updateSubJenis()">
-                                <option value="">Pilih Jenis Armada</option>
-                                <option value="Darat">🚛 Darat</option>
-                                <option value="Laut">🚢 Laut</option>
-                                <option value="Udara">✈️ Udara</option>
-                            </select>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Biaya Operasional Dasar (Rp)</label>
+                                <input type="number" class="form-control" name="biaya_operasional_dasar" required min="0" step="0.01" placeholder="Biaya operasional">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Jumlah Roda</label>
+                                <input type="number" class="form-control" name="jumlah_roda" min="0" placeholder="Jumlah roda">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Sub Jenis Armada</label>
-                            <select class="form-select" name="sub_jenis_armada" id="subJenisArmada" required>
-                                <option value="">Pilih Sub Jenis</option>
-                            </select>
-                            <small class="text-muted">Pilih jenis armada terlebih dahulu untuk memfilter sub jenis</small>
+
+                        <!-- Field khusus Truk Darat -->
+                        <div id="trukFields" style="display:none;">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Rute Tol</label>
+                                    <textarea class="form-control" name="rute_tol" rows="2" placeholder="Rute tol yang dilalui"></textarea>
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Kapasitas (Kg)</label>
-                            <input type="number" class="form-control" name="kapasitas" id="kapasitas" required min="1" placeholder="Kapasitas dalam Kg">
-                            <small class="text-muted">Minimal 1 Kg</small>
+
+                        <!-- Field khusus Kapal Laut -->
+                        <div id="kapalFields" style="display:none;">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Nama Dermaga</label>
+                                    <input type="text" class="form-control" name="nama_dermaga" placeholder="Nama dermaga">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Jenis Kontainer</label>
+                                    <input type="text" class="form-control" name="jenis_kontainer" placeholder="Jenis kontainer">
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Status</label>
-                            <select class="form-select" name="status" required>
-                                <option value="Tersedia">✅ Tersedia</option>
-                                <option value="Dalam Perawatan">🔧 Dalam Perawatan</option>
-                                <option value="Disewa">📋 Disewa</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Lokasi</label>
-                            <input type="text" class="form-control" name="lokasi" required placeholder="Lokasi armada saat ini">
+
+                        <!-- Field khusus Pesawat Kargo -->
+                        <div id="pesawatFields" style="display:none;">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Batas Ketinggian (meter)</label>
+                                    <input type="number" class="form-control" name="batas_ketinggian" step="0.01" placeholder="Batas ketinggian">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Izin Penerbangan Khusus</label>
+                                    <input type="text" class="form-control" name="izin_penerbangan_khusus" placeholder="Izin penerbangan">
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -421,7 +487,7 @@ $result = $koneksi->query($sql);
     ?>
     <!-- Edit Armada Modal -->
     <div class="modal fade show" id="editArmadaModal" tabindex="-1" style="display:block; background: rgba(0,0,0,0.5);">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <form method="POST" action="update_armada.php">
                     <div class="modal-header">
@@ -430,47 +496,75 @@ $result = $koneksi->query($sql);
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="id_armada" value="<?= $editData['id_armada'] ?>">
-                        <div class="mb-3">
-                            <label class="form-label">Kode Armada</label>
-                            <!-- PERHATIAN: gunakan 'code_armada' -->
-                            <input type="text" class="form-control" name="kode_armada" value="<?= htmlspecialchars($editData['code_armada']) ?>" required>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Kode Armada</label>
+                                <input type="text" class="form-control" name="id_armada_code" value="<?= htmlspecialchars($editData['id_armada_code']) ?>" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Jenis Armada</label>
+                                <select class="form-select" name="jenis_armada" required>
+                                    <option value="TrukDarat" <?= $editData['jenis_armada'] == 'TrukDarat' ? 'selected' : '' ?>>🚛 Truk Darat</option>
+                                    <option value="KapalLaut" <?= $editData['jenis_armada'] == 'KapalLaut' ? 'selected' : '' ?>>🚢 Kapal Laut</option>
+                                    <option value="PesawatKargo" <?= $editData['jenis_armada'] == 'PesawatKargo' ? 'selected' : '' ?>>✈️ Pesawat Kargo</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Nama Armada</label>
-                            <input type="text" class="form-control" name="nama_armada" value="<?= htmlspecialchars($editData['nama_armada']) ?>" required>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Kapasitas Maksimal (Kg)</label>
+                                <input type="number" class="form-control" name="kapasitas_maksimal_kg" value="<?= $editData['kapasitas_maksimal kg'] ?>" required min="1" step="0.01">
+                                <small class="text-muted">Minimal 1 Kg</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Status Kelaikan</label>
+                                <select class="form-select" name="status_kelaikan" required>
+                                    <option value="Laik" <?= $editData['status_kelaikan'] == 'Laik' ? 'selected' : '' ?>>✅ Laik</option>
+                                    <option value="Tidak Laik" <?= $editData['status_kelaikan'] == 'Tidak Laik' ? 'selected' : '' ?>>❌ Tidak Laik</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Jenis Armada</label>
-                            <select class="form-select" name="jenis_armada" required>
-                                <option value="Darat" <?= $editData['jenis_armada'] == 'Darat' ? 'selected' : '' ?>>🚛 Darat</option>
-                                <option value="Laut" <?= $editData['jenis_armada'] == 'Laut' ? 'selected' : '' ?>>🚢 Laut</option>
-                                <option value="Udara" <?= $editData['jenis_armada'] == 'Udara' ? 'selected' : '' ?>>✈️ Udara</option>
-                            </select>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Biaya Operasional Dasar (Rp)</label>
+                                <input type="number" class="form-control" name="biaya_operasional_dasar" value="<?= $editData['biaya_operasional_dasar'] ?>" required min="0" step="0.01">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Jumlah Roda</label>
+                                <input type="number" class="form-control" name="jumlah_roda" value="<?= $editData['jumlah_roda'] ?>" min="0">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Sub Jenis Armada</label>
-                            <select class="form-select" name="sub_jenis_armada" required>
-                                <option value="Truk Darat" <?= $editData['sub_jenis'] == 'Truk Darat' ? 'selected' : '' ?>>🚛 Truk Darat</option>
-                                <option value="Kapal Laut" <?= $editData['sub_jenis'] == 'Kapal Laut' ? 'selected' : '' ?>>🚢 Kapal Laut</option>
-                                <option value="Pesawat Kargo" <?= $editData['sub_jenis'] == 'Pesawat Kargo' ? 'selected' : '' ?>>✈️ Pesawat Kargo</option>
-                            </select>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Rute Tol</label>
+                                <textarea class="form-control" name="rute_tol" rows="2"><?= htmlspecialchars($editData['rute_tol']) ?></textarea>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Kapasitas (Kg)</label>
-                            <input type="number" class="form-control" name="kapasitas" value="<?= $editData['kapasitas'] ?>" required min="1">
-                            <small class="text-muted">Minimal 1 Kg</small>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nama Dermaga</label>
+                                <input type="text" class="form-control" name="nama_dermaga" value="<?= htmlspecialchars($editData['nama_dermaga']) ?>">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Jenis Kontainer</label>
+                                <input type="text" class="form-control" name="jenis_kontainer" value="<?= htmlspecialchars($editData['jenis_kontainer']) ?>">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Status</label>
-                            <select class="form-select" name="status" required>
-                                <option value="Tersedia" <?= $editData['status'] == 'Tersedia' ? 'selected' : '' ?>>✅ Tersedia</option>
-                                <option value="Dalam Perawatan" <?= $editData['status'] == 'Dalam Perawatan' ? 'selected' : '' ?>>🔧 Dalam Perawatan</option>
-                                <option value="Disewa" <?= $editData['status'] == 'Disewa' ? 'selected' : '' ?>>📋 Disewa</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Lokasi</label>
-                            <input type="text" class="form-control" name="lokasi" value="<?= htmlspecialchars($editData['lokasi']) ?>" required>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Batas Ketinggian (meter)</label>
+                                <input type="number" class="form-control" name="batas_ketinggian" value="<?= $editData['batas_ketinggian'] ?>" step="0.01">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Izin Penerbangan Khusus</label>
+                                <input type="text" class="form-control" name="izin_penerbangan_khusus" value="<?= htmlspecialchars($editData['izin_penerbangan_khusus']) ?>">
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -485,18 +579,19 @@ $result = $koneksi->query($sql);
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function updateSubJenis() {
+        function toggleFields() {
             const jenis = document.getElementById('jenisArmada').value;
-            const subSelect = document.getElementById('subJenisArmada');
             
-            subSelect.innerHTML = '<option value="">Pilih Sub Jenis</option>';
+            document.getElementById('trukFields').style.display = 'none';
+            document.getElementById('kapalFields').style.display = 'none';
+            document.getElementById('pesawatFields').style.display = 'none';
             
-            if (jenis === 'Darat') {
-                subSelect.innerHTML += '<option value="Truk Darat">🚛 Truk Darat</option>';
-            } else if (jenis === 'Laut') {
-                subSelect.innerHTML += '<option value="Kapal Laut">🚢 Kapal Laut</option>';
-            } else if (jenis === 'Udara') {
-                subSelect.innerHTML += '<option value="Pesawat Kargo">✈️ Pesawat Kargo</option>';
+            if (jenis === 'TrukDarat') {
+                document.getElementById('trukFields').style.display = 'block';
+            } else if (jenis === 'KapalLaut') {
+                document.getElementById('kapalFields').style.display = 'block';
+            } else if (jenis === 'PesawatKargo') {
+                document.getElementById('pesawatFields').style.display = 'block';
             }
         }
 
