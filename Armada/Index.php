@@ -1,5 +1,5 @@
 <?php
-// Armada/Index.php - TAMPILAN SEPERTI STAFF
+// Armada/Index.php - FINAL BENERAN
 $host = "localhost";
 $user = "root";
 $pass = "";
@@ -80,11 +80,6 @@ abstract class Armada {
         $result = $stmt->execute();
         $stmt->close();
         return $result;
-    }
-    
-    public static function countByType($conn, $jenis) {
-        $result = $conn->query("SELECT COUNT(*) as total FROM armada WHERE jenis_armada = '$jenis'");
-        return $result->fetch_assoc()['total'];
     }
 }
 
@@ -211,7 +206,6 @@ class PesawatKargo extends Armada {
 // ============================================
 $message = '';
 $error = '';
-$active_menu = 'armada';
 
 if (isset($_GET['hapus'])) {
     $id = (int)$_GET['hapus'];
@@ -222,7 +216,7 @@ if (isset($_GET['hapus'])) {
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $jenis = $_POST['jenis_armada'];
     $armada = null;
     
@@ -272,10 +266,6 @@ if (isset($_GET['msg'])) {
 }
 
 $armada_list = Armada::getAll($conn);
-$total_truk = Armada::countByType($conn, 'TrukDarat');
-$total_kapal = Armada::countByType($conn, 'KapalLaut');
-$total_pesawat = Armada::countByType($conn, 'PesawatKargo');
-$total_armada = count($armada_list);
 ?>
 
 <!DOCTYPE html>
@@ -376,31 +366,6 @@ $total_armada = count($armada_list);
             color: var(--primary-color);
             padding: 5px 10px;
         }
-
-        /* ===== STATS ROW ===== */
-        .stats-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .stat-item {
-            background: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex: 1;
-            min-width: 150px;
-        }
-
-        .stat-item .stat-icon { font-size: 28px; }
-        .stat-item .stat-info { display: flex; flex-direction: column; }
-        .stat-item .stat-info .number { font-size: 22px; font-weight: bold; color: var(--primary-color); }
-        .stat-item .stat-info .label { font-size: 12px; color: #888; }
 
         /* ===== TABLE ===== */
         .table-container {
@@ -616,8 +581,6 @@ $total_armada = count($armada_list);
             .main-content { margin-left: 0; padding: 15px; }
             .hamburger { display: block; }
             .header { flex-direction: column; align-items: flex-start; gap: 10px; }
-            .stats-row { flex-direction: column; }
-            .stat-item { min-width: 100%; }
         }
 
         .sidebar::-webkit-scrollbar { width: 5px; }
@@ -682,38 +645,6 @@ $total_armada = count($armada_list);
             <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
         <?php endif; ?>
 
-        <!-- STATS -->
-        <div class="stats-row">
-            <div class="stat-item">
-                <span class="stat-icon">🚛</span>
-                <div class="stat-info">
-                    <span class="number"><?php echo $total_armada; ?></span>
-                    <span class="label">Total Armada</span>
-                </div>
-            </div>
-            <div class="stat-item">
-                <span class="stat-icon">🚛</span>
-                <div class="stat-info">
-                    <span class="number"><?php echo $total_truk; ?></span>
-                    <span class="label">Truk Darat</span>
-                </div>
-            </div>
-            <div class="stat-item">
-                <span class="stat-icon">⛴️</span>
-                <div class="stat-info">
-                    <span class="number"><?php echo $total_kapal; ?></span>
-                    <span class="label">Kapal Laut</span>
-                </div>
-            </div>
-            <div class="stat-item">
-                <span class="stat-icon">✈️</span>
-                <div class="stat-info">
-                    <span class="number"><?php echo $total_pesawat; ?></span>
-                    <span class="label">Pesawat Kargo</span>
-                </div>
-            </div>
-        </div>
-
         <!-- TABLE -->
         <div class="table-container">
             <div class="table-header">
@@ -725,11 +656,11 @@ $total_armada = count($armada_list);
                     <table>
                         <thead>
                             <tr>
-                                <th>ID Code</th>
-                                <th>Jenis Armada</th>
+                                <th>Kode</th>
+                                <th>Nama Armada</th>
+                                <th>Jenis</th>
                                 <th>Kapasitas</th>
                                 <th>Status</th>
-                                <th>Biaya Dasar</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -737,6 +668,7 @@ $total_armada = count($armada_list);
                             <?php foreach ($armada_list as $a): ?>
                                 <tr>
                                     <td><strong><?php echo htmlspecialchars($a['id_armada_code']); ?></strong></td>
+                                    <td><?php echo htmlspecialchars($a['id_armada_code']); ?></td>
                                     <td>
                                         <span class="badge <?php 
                                             echo $a['jenis_armada'] == 'TrukDarat' ? 'badge-truk' : 
@@ -752,7 +684,6 @@ $total_armada = count($armada_list);
                                     <td>
                                         <?php echo $a['status_kelaikan'] == 'Laik' ? '✅ Laik' : '❌ Tidak Laik'; ?>
                                     </td>
-                                    <td>Rp <?php echo number_format($a['biaya_operasional_dasar'], 0, ',', '.'); ?></td>
                                     <td>
                                         <a href="?hapus=<?php echo $a['id_armada']; ?>" class="btn-hapus" onclick="return confirm('Yakin hapus armada ini?')">🗑️ Hapus</a>
                                     </td>
@@ -763,7 +694,7 @@ $total_armada = count($armada_list);
                 <?php else: ?>
                     <div class="empty-state">
                         <div class="empty-icon">📭</div>
-                        <p>Tidak ada data armada</p>
+                        <p>Belum ada data armada</p>
                         <p style="font-size:12px; margin-top:5px;">Klik tombol "Tambah Armada Baru" untuk menambahkan</p>
                     </div>
                 <?php endif; ?>
@@ -777,8 +708,6 @@ $total_armada = count($armada_list);
             <button class="close-btn" onclick="closeModal()">×</button>
             <h2>➕ Tambah Armada Baru</h2>
             <form method="POST">
-                <input type="hidden" name="action" value="add">
-                
                 <div class="form-group">
                     <label>Jenis Armada</label>
                     <select name="jenis_armada" id="jenisArmada" required>
@@ -790,7 +719,7 @@ $total_armada = count($armada_list);
                 </div>
 
                 <div class="form-group">
-                    <label>ID Armada Code</label>
+                    <label>Kode Armada</label>
                     <input type="text" name="id_armada_code" required placeholder="TRK001">
                 </div>
 
@@ -820,7 +749,7 @@ $total_armada = count($armada_list);
                     </div>
                     <div class="form-group">
                         <label>Rute Tol</label>
-                        <input type="text" name="rute_tol" placeholder="Tol Dalam Kota, Tol Lingkar Luar">
+                        <input type="text" name="rute_tol" placeholder="Tol Dalam Kota">
                     </div>
                 </div>
 
@@ -848,7 +777,7 @@ $total_armada = count($armada_list);
                     </div>
                     <div class="form-group">
                         <label>Izin Penerbangan Khusus</label>
-                        <input type="text" name="izin_penerbangan" placeholder="Cargo Malam / Internasional">
+                        <input type="text" name="izin_penerbangan" placeholder="Cargo Malam">
                     </div>
                 </div>
 
@@ -891,4 +820,17 @@ $total_armada = count($armada_list);
             } else if (this.value === 'KapalLaut') {
                 document.getElementById('fieldKapal').style.display = 'block';
             } else if (this.value === 'PesawatKargo') {
-                document.getElementById('fieldPesawat').style.display = 'block
+                document.getElementById('fieldPesawat').style.display = 'block';
+            }
+        });
+
+        // Close modal klik di luar
+        document.getElementById('modalArmada').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+
+</body>
+</html>
