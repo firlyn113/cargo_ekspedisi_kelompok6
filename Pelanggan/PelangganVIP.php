@@ -49,7 +49,7 @@ class PelangganVIP extends AbstractPelanggan {
         return $benefits;
     }
     
-    // Getter & Setter
+    // Getter & Setter (Encapsulation)
     public function getAksesLayananPrioritas() {
         return $this->akses_layanan_prioritas;
     }
@@ -72,14 +72,136 @@ class PelangganVIP extends AbstractPelanggan {
         $this->poin_reward += floor($nominal / 100000) * 2; // 2 poin per 100k untuk VIP
     }
     
-    // Override save method
-    public function saveToDatabase($koneksi) {
-        parent::saveToDatabase($koneksi);
+    // Method untuk mendapatkan data lengkap sebagai array (untuk keperluan CRUD)
+    public function toArray() {
+        return [
+            'id_pelanggan' => $this->id_pelanggan,
+            'id_pelanggan_code' => $this->id_pelanggan_code,
+            'nama_lengkap' => $this->nama_lengkap,
+            'jenis_pelanggan' => $this->jenis_pelanggan,
+            'total_transaksi_bulan_ini' => $this->total_transaksi_bulan_ini,
+            'poin_reward' => $this->poin_reward,
+            'created_at' => $this->created_at,
+            'akses_layanan_prioritas' => $this->akses_layanan_prioritas,
+            'personal_assistant' => $this->personal_assistant
+        ];
+    }
+    
+    // Method khusus VIP - Request layanan prioritas
+    public function requestLayananPrioritas() {
+        if ($this->akses_layanan_prioritas) {
+            return [
+                'status' => 'success',
+                'message' => "✅ Layanan prioritas aktif! Anda akan dilayani tanpa antrian.",
+                'personal_assistant' => $this->personal_assistant ? "Dilayani oleh: {$this->personal_assistant}" : "Dilayani oleh tim VIP"
+            ];
+        }
+        return [
+            'status' => 'failed',
+            'message' => "❌ Layanan prioritas tidak aktif. Silakan upgrade ke VIP Premium!",
+            'action' => 'Hubungi customer service untuk upgrade'
+        ];
+    }
+    
+    // Method khusus VIP - Cek status layanan prioritas
+    public function cekStatusPrioritas() {
+        $status = $this->akses_layanan_prioritas ? 'Aktif' : 'Tidak Aktif';
+        $assistant = $this->personal_assistant ?: 'Belum ditentukan';
         
-        $sql = "UPDATE pelanggan SET akses_layanan_prioritas = " . ($this->akses_layanan_prioritas ? 1 : 0) . 
-                ", personal_assistant = '{$this->personal_assistant}' WHERE id_pelanggan = {$this->id_pelanggan}";
+        return [
+            'status_prioritas' => $status,
+            'personal_assistant' => $assistant,
+            'poin_reward' => $this->poin_reward,
+            'total_transaksi' => $this->total_transaksi_bulan_ini
+        ];
+    }
+    
+    // Method khusus VIP - Request personal assistant
+    public function requestPersonalAssistant($nama_assistant) {
+        if (empty($nama_assistant)) {
+            return [
+                'status' => 'failed',
+                'message' => "❌ Nama Personal Assistant tidak boleh kosong!"
+            ];
+        }
         
-        return $koneksi->query($sql);
+        $this->personal_assistant = $nama_assistant;
+        return [
+            'status' => 'success',
+            'message' => "✅ Personal Assistant '{$nama_assistant}' berhasil ditugaskan!",
+            'personal_assistant' => $this->personal_assistant
+        ];
+    }
+    
+    // Method khusus VIP - Hitung benefit nilai
+    public function hitungNilaiBenefit() {
+        $nilai = 0;
+        
+        // Nilai dari diskon (asumsi transaksi 1 juta)
+        $diskon = $this->hitungDiskonPengiriman(1000000);
+        $nilai += $diskon;
+        
+        // Nilai dari poin reward (1 poin = 2000)
+        $nilai += $this->poin_reward * 2000;
+        
+        // Nilai dari free packing (estimasi 50k per pengiriman)
+        $nilai += 50000;
+        
+        // Nilai dari pickup gratis (estimasi 25k per pickup)
+        $nilai += 25000;
+        
+        return [
+            'total_nilai_benefit' => $nilai,
+            'formatted' => 'Rp ' . number_format($nilai, 0, ',', '.'),
+            'detail' => [
+                'diskon' => 'Rp ' . number_format($diskon, 0, ',', '.'),
+                'poin_reward' => $this->poin_reward . ' poin (Rp ' . number_format($this->poin_reward * 2000, 0, ',', '.') . ')',
+                'free_packing' => 'Rp 50.000',
+                'pickup_gratis' => 'Rp 25.000'
+            ]
+        ];
+    }
+    
+    // Method khusus VIP - Cek kelayakan upgrade ke VIP Plus
+    public function cekKelayakanUpgrade() {
+        $kriteria = [
+            'min_transaksi' => 5000000,
+            'min_poin' => 500,
+            'min_bulan_aktif' => 3
+        ];
+        
+        $layak = true;
+        $pesan = [];
+        
+        if ($this->total_transaksi_bulan_ini < $kriteria['min_transaksi']) {
+            $layak = false;
+            $pesan[] = "❌ Total transaksi kurang dari Rp " . number_format($kriteria['min_transaksi'], 0, ',', '.');
+        }
+        
+        if ($this->poin_reward < $kriteria['min_poin']) {
+            $layak = false;
+            $pesan[] = "❌ Poin reward kurang dari {$kriteria['min_poin']} poin";
+        }
+        
+        if ($layak) {
+            return [
+                'status' => 'success',
+                'message' => "✅ Selamat! Anda layak untuk upgrade ke VIP Plus!",
+                'benefit_tambahan' => [
+                    'Diskon 25%',
+                    'Personal Assistant 24/7',
+                    'Free shipping unlimited',
+                    'Akses lounge bandara'
+                ]
+            ];
+        }
+        
+        return [
+            'status' => 'failed',
+            'message' => "❌ Belum memenuhi syarat upgrade ke VIP Plus",
+            'kriteria' => $kriteria,
+            'kekurangan' => $pesan
+        ];
     }
 }
 ?>

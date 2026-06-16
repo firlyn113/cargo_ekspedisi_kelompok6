@@ -50,7 +50,7 @@ class MitraKorporat extends AbstractPelanggan {
         return $benefits;
     }
     
-    // Getter & Setter
+    // Getter & Setter (Encapsulation)
     public function getNpwpPerusahaan() {
         return $this->npwp_perusahaan;
     }
@@ -67,15 +67,19 @@ class MitraKorporat extends AbstractPelanggan {
         $this->batas_tempo_pembayaran = $tanggal;
     }
     
-    // Override save method
-    public function saveToDatabase($koneksi) {
-        parent::saveToDatabase($koneksi);
-        
-        $sql = "UPDATE pelanggan SET npwp_perusahaan = '{$this->npwp_perusahaan}', 
-                batas_tempo_pembayaran = '{$this->batas_tempo_pembayaran}' 
-                WHERE id_pelanggan = {$this->id_pelanggan}";
-        
-        return $koneksi->query($sql);
+    // Method untuk mendapatkan data lengkap sebagai array (untuk keperluan CRUD)
+    public function toArray() {
+        return [
+            'id_pelanggan' => $this->id_pelanggan,
+            'id_pelanggan_code' => $this->id_pelanggan_code,
+            'nama_lengkap' => $this->nama_lengkap,
+            'jenis_pelanggan' => $this->jenis_pelanggan,
+            'total_transaksi_bulan_ini' => $this->total_transaksi_bulan_ini,
+            'poin_reward' => $this->poin_reward,
+            'created_at' => $this->created_at,
+            'npwp_perusahaan' => $this->npwp_perusahaan,
+            'batas_tempo_pembayaran' => $this->batas_tempo_pembayaran
+        ];
     }
     
     // Method khusus untuk korporat - cek tagihan jatuh tempo
@@ -85,10 +89,21 @@ class MitraKorporat extends AbstractPelanggan {
         if ($hari_tersisa <= 0) {
             return "⚠️ Tagihan sudah jatuh tempo! Segera lakukan pembayaran.";
         } elseif ($hari_tersisa <= 7) {
-            return "⚠️ Peringatan: Tagihan akan jatuh tempo dalam {$hari_tersisa} hari.";
+            return "⚠️ Peringatan: Tagihan akan jatuh tempo dalam " . ceil($hari_tersisa) . " hari.";
         }
         
-        return "✅ Tagihan masih dalam periode tempo. Sisa {$hari_tersisa} hari.";
+        return "✅ Tagihan masih dalam periode tempo. Sisa " . ceil($hari_tersisa) . " hari.";
+    }
+    
+    // Method untuk menampilkan info lengkap korporat
+    public function getInfoKorporat() {
+        return [
+            'npwp' => $this->npwp_perusahaan,
+            'tempo_pembayaran' => $this->batas_tempo_pembayaran,
+            'status_tagihan' => $this->cekTagihanJatuhTempo(),
+            'total_transaksi' => $this->total_transaksi_bulan_ini,
+            'poin' => $this->poin_reward
+        ];
     }
 }
 ?>
