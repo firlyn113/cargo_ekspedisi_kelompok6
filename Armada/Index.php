@@ -19,8 +19,6 @@ if (isset($_GET['delete'])) {
     if ($koneksi->query($sql)) {
         $message = "Armada berhasil dihapus!";
         $messageType = "success";
-        header('Location: index.php?message=' . urlencode($message) . '&type=' . $messageType);
-        exit();
     } else {
         $message = "Gagal menghapus armada!";
         $messageType = "danger";
@@ -29,50 +27,40 @@ if (isset($_GET['delete'])) {
 
 // Handle create
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'create') {
-    $kode = mysqli_real_escape_string($koneksi, $_POST['kode_armada']);
-    $nama = mysqli_real_escape_string($koneksi, $_POST['nama_armada']);
-    $jenis = mysqli_real_escape_string($koneksi, $_POST['jenis_armada']);
-    $sub_jenis = mysqli_real_escape_string($koneksi, $_POST['sub_jenis_armada']);
+    $kode = trim($_POST['kode_armada']);
+    $nama = trim($_POST['nama_armada']);
+    $jenis = $_POST['jenis_armada'];
+    $sub_jenis = $_POST['sub_jenis_armada'];
     $kapasitas = intval($_POST['kapasitas']);
-    $status = mysqli_real_escape_string($koneksi, $_POST['status']);
-    $lokasi = mysqli_real_escape_string($koneksi, $_POST['lokasi']);
+    $status = $_POST['status'];
+    $lokasi = trim($_POST['lokasi']);
     
-    // Validasi kapasitas tidak boleh negatif atau 0
+    // Validasi kapasitas
     if ($kapasitas <= 0) {
         $message = "Kapasitas harus lebih dari 0 Kg!";
         $messageType = "danger";
     } else {
+        // Query insert dengan prepared statement untuk keamanan
         $sql = "INSERT INTO armada (kode_armada, nama_armada, jenis_armada, sub_jenis, kapasitas, status, lokasi) 
-                VALUES ('$kode', '$nama', '$jenis', '$sub_jenis', '$kapasitas', '$status', '$lokasi')";
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
         
-        if ($koneksi->query($sql)) {
+        $stmt = $koneksi->prepare($sql);
+        $stmt->bind_param("ssssiss", $kode, $nama, $jenis, $sub_jenis, $kapasitas, $status, $lokasi);
+        
+        if ($stmt->execute()) {
             $message = "Armada berhasil ditambahkan!";
             $messageType = "success";
-            header('Location: index.php?message=' . urlencode($message) . '&type=' . $messageType);
-            exit();
         } else {
-            $message = "Gagal menambahkan armada: " . $koneksi->error;
+            $message = "Gagal menambahkan armada: " . $stmt->error;
             $messageType = "danger";
         }
+        $stmt->close();
     }
-}
-
-// Get message from URL
-if (isset($_GET['message'])) {
-    $message = $_GET['message'];
-    $messageType = isset($_GET['type']) ? $_GET['type'] : 'success';
 }
 
 // Get all armada
 $sql = "SELECT * FROM armada ORDER BY created_at DESC";
 $result = $koneksi->query($sql);
-
-// Mapping sub_jenis ke icon
-$subJenisIcon = [
-    'Truk Darat' => '🚛',
-    'Kapal Laut' => '🚢',
-    'Pesawat Kargo' => '✈️'
-];
 ?>
 
 <!DOCTYPE html>
@@ -221,17 +209,6 @@ $subJenisIcon = [
         .badge-disewa {
             background-color: #e74c3c;
             color: white;
-        }
-
-        .sub-jenis-icon {
-            font-size: 1.2rem;
-            margin-right: 5px;
-        }
-
-        /* Fix untuk input number tidak boleh negatif */
-        input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button {
-            opacity: 1;
         }
     </style>
 </head>
@@ -404,7 +381,7 @@ $subJenisIcon = [
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Kapasitas (Kg)</label>
-                            <input type="number" class="form-control" name="kapasitas" id="kapasitas" required min="1" placeholder="Kapasitas dalam Kg" oninput="validateKapasitas(this)">
+                            <input type="number" class="form-control" name="kapasitas" id="kapasitas" required min="1" placeholder="Kapasitas dalam Kg" onchange="validateKapasitas(this)">
                             <small class="text-muted">Minimal 1 Kg</small>
                         </div>
                         <div class="mb-3">
@@ -472,7 +449,7 @@ $subJenisIcon = [
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Kapasitas (Kg)</label>
-                            <input type="number" class="form-control" name="kapasitas" id="editKapasitas" value="<?= $editData['kapasitas'] ?>" required min="1" oninput="validateKapasitasEdit(this)">
+                            <input type="number" class="form-control" name="kapasitas" id="editKapasitas" value="<?= $editData['kapasitas'] ?>" required min="1" onchange="validateKapasitasEdit(this)">
                             <small class="text-muted">Minimal 1 Kg</small>
                         </div>
                         <div class="mb-3">
@@ -500,15 +477,12 @@ $subJenisIcon = [
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Update sub jenis berdasarkan pilihan jenis
         function updateSubJenis() {
             const jenis = document.getElementById('jenisArmada').value;
             const subSelect = document.getElementById('subJenisArmada');
             
-            // Clear options
             subSelect.innerHTML = '<option value="">Pilih Sub Jenis</option>';
             
-            // Add options based on jenis
             if (jenis === 'Darat') {
                 subSelect.innerHTML += '<option value="Truk Darat">🚛 Truk Darat</option>';
             } else if (jenis === 'Laut') {
@@ -518,9 +492,8 @@ $subJenisIcon = [
             }
         }
 
-        // Validasi kapasitas tidak boleh kurang dari 1
         function validateKapasitas(input) {
-            if (input.value <= 0 || input.value === '') {
+            if (input.value <= 0) {
                 input.setCustomValidity('Kapasitas harus lebih dari 0 Kg');
             } else {
                 input.setCustomValidity('');
@@ -528,17 +501,16 @@ $subJenisIcon = [
         }
 
         function validateKapasitasEdit(input) {
-            if (input.value <= 0 || input.value === '') {
+            if (input.value <= 0) {
                 input.setCustomValidity('Kapasitas harus lebih dari 0 Kg');
             } else {
                 input.setCustomValidity('');
             }
         }
 
-        // Validasi form sebelum submit
         function validateForm() {
             const kapasitas = document.getElementById('kapasitas');
-            if (kapasitas.value <= 0 || kapasitas.value === '') {
+            if (kapasitas.value <= 0) {
                 alert('Kapasitas harus lebih dari 0 Kg!');
                 kapasitas.focus();
                 return false;
@@ -548,25 +520,13 @@ $subJenisIcon = [
 
         function validateEditForm() {
             const kapasitas = document.getElementById('editKapasitas');
-            if (kapasitas.value <= 0 || kapasitas.value === '') {
+            if (kapasitas.value <= 0) {
                 alert('Kapasitas harus lebih dari 0 Kg!');
                 kapasitas.focus();
                 return false;
             }
             return true;
         }
-
-        // Inisialisasi sub jenis untuk edit
-        document.addEventListener('DOMContentLoaded', function() {
-            // Untuk edit, sub jenis sudah terisi
-            // Untuk tambah, kosongkan dulu
-            const jenisSelect = document.getElementById('jenisArmada');
-            if (jenisSelect) {
-                // Kosongkan sub jenis saat pertama kali load
-                const subSelect = document.getElementById('subJenisArmada');
-                subSelect.innerHTML = '<option value="">Pilih Sub Jenis</option>';
-            }
-        });
     </script>
 </body>
 </html>
