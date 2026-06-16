@@ -42,7 +42,6 @@ $result = $koneksi->query($query);
             margin: 0 auto;
         }
         
-        /* Header - Biru seperti gambar */
         .header {
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
@@ -252,7 +251,7 @@ $result = $koneksi->query($query);
 <div class="container">
     <!-- Header - Biru seperti gambar -->
     <div class="header">
-        <h1>Modul PEMBAYARAN - Ekspedisi Logistik <span>Kelompok 6</span></h1>
+        <h1>Modul PEMBAYARAN - Ekspedisi Logistik <span></span></h1>
         <p>Kelola transaksi pembayaran, validasi, dan monitoring status pembayaran</p>
     </div>
 
