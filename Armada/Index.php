@@ -19,6 +19,8 @@ if (isset($_GET['delete'])) {
     if ($koneksi->query($sql)) {
         $message = "Armada berhasil dihapus!";
         $messageType = "success";
+        header('Location: index.php?message=' . urlencode($message) . '&type=' . $messageType);
+        exit();
     } else {
         $message = "Gagal menghapus armada!";
         $messageType = "danger";
@@ -27,43 +29,42 @@ if (isset($_GET['delete'])) {
 
 // Handle create
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'create') {
-    $kode = trim($_POST['kode_armada']);
-    $nama = trim($_POST['nama_armada']);
-    $jenis = $_POST['jenis_armada'];
-    $sub_jenis = $_POST['sub_jenis_armada'];
+    $kode = mysqli_real_escape_string($koneksi, $_POST['kode_armada']);
+    $nama = mysqli_real_escape_string($koneksi, $_POST['nama_armada']);
+    $jenis = mysqli_real_escape_string($koneksi, $_POST['jenis_armada']);
+    $sub_jenis = mysqli_real_escape_string($koneksi, $_POST['sub_jenis_armada']);
     $kapasitas = intval($_POST['kapasitas']);
-    $status = $_POST['status'];
-    $lokasi = trim($_POST['lokasi']);
+    $status = mysqli_real_escape_string($koneksi, $_POST['status']);
+    $lokasi = mysqli_real_escape_string($koneksi, $_POST['lokasi']);
     
-    // Validasi kapasitas
+    // Validasi kapasitas tidak boleh negatif atau 0
     if ($kapasitas <= 0) {
         $message = "Kapasitas harus lebih dari 0 Kg!";
         $messageType = "danger";
     } else {
-        // Cek apakah kode armada sudah ada
-        $checkSql = "SELECT id_armada FROM armada WHERE kode_armada = '$kode'";
-        $checkResult = $koneksi->query($checkSql);
+        // PERHATIAN: Gunakan 'code_armada' karena di database Anda pakai 'code_armada'
+        $sql = "INSERT INTO armada (code_armada, nama_armada, jenis_armada, sub_jenis, kapasitas, status, lokasi) 
+                VALUES ('$kode', '$nama', '$jenis', '$sub_jenis', '$kapasitas', '$status', '$lokasi')";
         
-        if ($checkResult->num_rows > 0) {
-            $message = "Kode armada '$kode' sudah terdaftar!";
-            $messageType = "danger";
+        if ($koneksi->query($sql)) {
+            $message = "Armada berhasil ditambahkan!";
+            $messageType = "success";
+            header('Location: index.php?message=' . urlencode($message) . '&type=' . $messageType);
+            exit();
         } else {
-            // Query insert
-            $sql = "INSERT INTO armada (kode_armada, nama_armada, jenis_armada, sub_jenis, kapasitas, status, lokasi) 
-                    VALUES ('$kode', '$nama', '$jenis', '$sub_jenis', '$kapasitas', '$status', '$lokasi')";
-            
-            if ($koneksi->query($sql)) {
-                $message = "Armada berhasil ditambahkan!";
-                $messageType = "success";
-            } else {
-                $message = "Gagal menambahkan armada: " . $koneksi->error;
-                $messageType = "danger";
-            }
+            $message = "Gagal menambahkan armada: " . $koneksi->error;
+            $messageType = "danger";
         }
     }
 }
 
-// Get all armada
+// Get message from URL
+if (isset($_GET['message'])) {
+    $message = $_GET['message'];
+    $messageType = isset($_GET['type']) ? $_GET['type'] : 'success';
+}
+
+// Get all armada - PERHATIAN: gunakan 'code_armada'
 $sql = "SELECT * FROM armada ORDER BY created_at DESC";
 $result = $koneksi->query($sql);
 ?>
@@ -287,7 +288,8 @@ $result = $koneksi->query($sql);
                                     <?php if ($result && $result->num_rows > 0): ?>
                                         <?php while ($row = $result->fetch_assoc()): ?>
                                         <tr>
-                                            <td><strong><?= htmlspecialchars($row['kode_armada']) ?></strong></td>
+                                            <!-- PERHATIAN: gunakan 'code_armada' -->
+                                            <td><strong><?= htmlspecialchars($row['code_armada']) ?></strong></td>
                                             <td><?= htmlspecialchars($row['nama_armada']) ?></td>
                                             <td>
                                                 <?php
@@ -430,7 +432,8 @@ $result = $koneksi->query($sql);
                         <input type="hidden" name="id_armada" value="<?= $editData['id_armada'] ?>">
                         <div class="mb-3">
                             <label class="form-label">Kode Armada</label>
-                            <input type="text" class="form-control" name="kode_armada" value="<?= htmlspecialchars($editData['kode_armada']) ?>" required>
+                            <!-- PERHATIAN: gunakan 'code_armada' -->
+                            <input type="text" class="form-control" name="kode_armada" value="<?= htmlspecialchars($editData['code_armada']) ?>" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Nama Armada</label>
