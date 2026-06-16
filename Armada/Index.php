@@ -19,6 +19,8 @@ if (isset($_GET['delete'])) {
     if ($koneksi->query($sql)) {
         $message = "Armada berhasil dihapus!";
         $messageType = "success";
+        header('Location: index.php?message=' . urlencode($message) . '&type=' . $messageType);
+        exit();
     } else {
         $message = "Gagal menghapus armada!";
         $messageType = "danger";
@@ -27,24 +29,38 @@ if (isset($_GET['delete'])) {
 
 // Handle create
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'create') {
-    $kode = $_POST['kode_armada'];
-    $nama = $_POST['nama_armada'];
-    $jenis = $_POST['jenis_armada'];
-    $sub_jenis = $_POST['sub_jenis_armada'];
-    $kapasitas = $_POST['kapasitas'];
-    $status = $_POST['status'];
-    $lokasi = $_POST['lokasi'];
+    $kode = mysqli_real_escape_string($koneksi, $_POST['kode_armada']);
+    $nama = mysqli_real_escape_string($koneksi, $_POST['nama_armada']);
+    $jenis = mysqli_real_escape_string($koneksi, $_POST['jenis_armada']);
+    $sub_jenis = mysqli_real_escape_string($koneksi, $_POST['sub_jenis_armada']);
+    $kapasitas = intval($_POST['kapasitas']);
+    $status = mysqli_real_escape_string($koneksi, $_POST['status']);
+    $lokasi = mysqli_real_escape_string($koneksi, $_POST['lokasi']);
     
-    $sql = "INSERT INTO armada (kode_armada, nama_armada, jenis_armada, sub_jenis, kapasitas, status, lokasi) 
-            VALUES ('$kode', '$nama', '$jenis', '$sub_jenis', '$kapasitas', '$status', '$lokasi')";
-    
-    if ($koneksi->query($sql)) {
-        $message = "Armada berhasil ditambahkan!";
-        $messageType = "success";
-    } else {
-        $message = "Gagal menambahkan armada: " . $koneksi->error;
+    // Validasi kapasitas tidak boleh negatif atau 0
+    if ($kapasitas <= 0) {
+        $message = "Kapasitas harus lebih dari 0 Kg!";
         $messageType = "danger";
+    } else {
+        $sql = "INSERT INTO armada (kode_armada, nama_armada, jenis_armada, sub_jenis, kapasitas, status, lokasi) 
+                VALUES ('$kode', '$nama', '$jenis', '$sub_jenis', '$kapasitas', '$status', '$lokasi')";
+        
+        if ($koneksi->query($sql)) {
+            $message = "Armada berhasil ditambahkan!";
+            $messageType = "success";
+            header('Location: index.php?message=' . urlencode($message) . '&type=' . $messageType);
+            exit();
+        } else {
+            $message = "Gagal menambahkan armada: " . $koneksi->error;
+            $messageType = "danger";
+        }
     }
+}
+
+// Get message from URL
+if (isset($_GET['message'])) {
+    $message = $_GET['message'];
+    $messageType = isset($_GET['type']) ? $_GET['type'] : 'success';
 }
 
 // Get all armada
@@ -78,16 +94,6 @@ $subJenisIcon = [
         body {
             background-color: #ecf0f1;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .navbar {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .navbar-brand {
-            font-weight: 600;
-            font-size: 1.3rem;
         }
         
         .container-fluid {
@@ -186,17 +192,7 @@ $subJenisIcon = [
         .btn-danger:hover {
             background: #c0392b;
         }
-        
-        .btn-success {
-            background: var(--success-color);
-            border: none;
-        }
-        
-        .btn-success:hover {
-            background: #219a52;
-        }
 
-        /* Badge custom colors for armada */
         .badge-darat {
             background-color: #3498db;
             color: white;
@@ -230,6 +226,12 @@ $subJenisIcon = [
         .sub-jenis-icon {
             font-size: 1.2rem;
             margin-right: 5px;
+        }
+
+        /* Fix untuk input number tidak boleh negatif */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            opacity: 1;
         }
     </style>
 </head>
@@ -270,7 +272,7 @@ $subJenisIcon = [
                 
                 <?php if ($message): ?>
                     <div class="alert alert-<?= $messageType ?> alert-dismissible fade show" role="alert">
-                        <?= $message ?>
+                        <?= htmlspecialchars($message) ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 <?php endif; ?>
@@ -369,7 +371,7 @@ $subJenisIcon = [
     <div class="modal fade" id="addArmadaModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form method="POST">
+                <form method="POST" onsubmit="return validateForm()">
                     <div class="modal-header">
                         <h5 class="modal-title">Tambah Armada Baru</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -397,15 +399,13 @@ $subJenisIcon = [
                             <label class="form-label">Sub Jenis Armada</label>
                             <select class="form-select" name="sub_jenis_armada" id="subJenisArmada" required>
                                 <option value="">Pilih Sub Jenis</option>
-                                <option value="Truk Darat">🚛 Truk Darat</option>
-                                <option value="Kapal Laut">🚢 Kapal Laut</option>
-                                <option value="Pesawat Kargo">✈️ Pesawat Kargo</option>
                             </select>
                             <small class="text-muted">Pilih jenis armada terlebih dahulu untuk memfilter sub jenis</small>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Kapasitas (Kg)</label>
-                            <input type="number" class="form-control" name="kapasitas" required placeholder="Kapasitas dalam Kg">
+                            <input type="number" class="form-control" name="kapasitas" id="kapasitas" required min="1" placeholder="Kapasitas dalam Kg" oninput="validateKapasitas(this)">
+                            <small class="text-muted">Minimal 1 Kg</small>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Status</label>
@@ -439,7 +439,7 @@ $subJenisIcon = [
     <div class="modal fade show" id="editArmadaModal" tabindex="-1" style="display:block; background: rgba(0,0,0,0.5);">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form method="POST" action="update_armada.php">
+                <form method="POST" action="update_armada.php" onsubmit="return validateEditForm()">
                     <div class="modal-header">
                         <h5 class="modal-title">Edit Armada</h5>
                         <a href="index.php" class="btn-close"></a>
@@ -472,7 +472,8 @@ $subJenisIcon = [
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Kapasitas (Kg)</label>
-                            <input type="number" class="form-control" name="kapasitas" value="<?= $editData['kapasitas'] ?>" required>
+                            <input type="number" class="form-control" name="kapasitas" id="editKapasitas" value="<?= $editData['kapasitas'] ?>" required min="1" oninput="validateKapasitasEdit(this)">
+                            <small class="text-muted">Minimal 1 Kg</small>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Status</label>
@@ -499,6 +500,7 @@ $subJenisIcon = [
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Update sub jenis berdasarkan pilihan jenis
         function updateSubJenis() {
             const jenis = document.getElementById('jenisArmada').value;
             const subSelect = document.getElementById('subJenisArmada');
@@ -515,6 +517,56 @@ $subJenisIcon = [
                 subSelect.innerHTML += '<option value="Pesawat Kargo">✈️ Pesawat Kargo</option>';
             }
         }
+
+        // Validasi kapasitas tidak boleh kurang dari 1
+        function validateKapasitas(input) {
+            if (input.value <= 0 || input.value === '') {
+                input.setCustomValidity('Kapasitas harus lebih dari 0 Kg');
+            } else {
+                input.setCustomValidity('');
+            }
+        }
+
+        function validateKapasitasEdit(input) {
+            if (input.value <= 0 || input.value === '') {
+                input.setCustomValidity('Kapasitas harus lebih dari 0 Kg');
+            } else {
+                input.setCustomValidity('');
+            }
+        }
+
+        // Validasi form sebelum submit
+        function validateForm() {
+            const kapasitas = document.getElementById('kapasitas');
+            if (kapasitas.value <= 0 || kapasitas.value === '') {
+                alert('Kapasitas harus lebih dari 0 Kg!');
+                kapasitas.focus();
+                return false;
+            }
+            return true;
+        }
+
+        function validateEditForm() {
+            const kapasitas = document.getElementById('editKapasitas');
+            if (kapasitas.value <= 0 || kapasitas.value === '') {
+                alert('Kapasitas harus lebih dari 0 Kg!');
+                kapasitas.focus();
+                return false;
+            }
+            return true;
+        }
+
+        // Inisialisasi sub jenis untuk edit
+        document.addEventListener('DOMContentLoaded', function() {
+            // Untuk edit, sub jenis sudah terisi
+            // Untuk tambah, kosongkan dulu
+            const jenisSelect = document.getElementById('jenisArmada');
+            if (jenisSelect) {
+                // Kosongkan sub jenis saat pertama kali load
+                const subSelect = document.getElementById('subJenisArmada');
+                subSelect.innerHTML = '<option value="">Pilih Sub Jenis</option>';
+            }
+        });
     </script>
 </body>
 </html>
