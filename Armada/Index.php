@@ -1,498 +1,462 @@
+<?php
+require_once '../Config/koneksi.php';
+
+// Buat koneksi dari class Database
+$database = new Database();
+$koneksi = $database->getConnection();
+
+// Start session for messages
+session_start();
+
+// Handle form submissions
+$message = '';
+$messageType = '';
+
+// Handle delete
+if (isset($_GET['delete'])) {
+    $id = intval($_GET['delete']);
+    $sql = "DELETE FROM armada WHERE id_armada = $id";
+    if ($koneksi->query($sql)) {
+        $message = "Armada berhasil dihapus!";
+        $messageType = "success";
+    } else {
+        $message = "Gagal menghapus armada!";
+        $messageType = "danger";
+    }
+}
+
+// Handle create
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'create') {
+    $kode = $_POST['kode_armada'];
+    $nama = $_POST['nama_armada'];
+    $jenis = $_POST['jenis_armada'];
+    $kapasitas = $_POST['kapasitas'];
+    $status = $_POST['status'];
+    $lokasi = $_POST['lokasi'];
+    
+    $sql = "INSERT INTO armada (kode_armada, nama_armada, jenis_armada, kapasitas, status, lokasi) 
+            VALUES ('$kode', '$nama', '$jenis', '$kapasitas', '$status', '$lokasi')";
+    
+    if ($koneksi->query($sql)) {
+        $message = "Armada berhasil ditambahkan!";
+        $messageType = "success";
+    } else {
+        $message = "Gagal menambahkan armada: " . $koneksi->error;
+        $messageType = "danger";
+    }
+}
+
+// Get all armada
+$sql = "SELECT * FROM armada ORDER BY created_at DESC";
+$result = $koneksi->query($sql);
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manajemen Armada - Cargo Ekspedisi</title>
+    <title>Sistem Manajemen Armada - Ekspedisi Logistik</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
         }
-
+        
         body {
+            background-color: #ecf0f1;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f2f5;
-            display: flex;
-            min-height: 100vh;
         }
-
-        /* SIDEBAR */
-        .sidebar {
-            width: 250px;
-            background: #1a2332;
-            color: #fff;
-            padding: 20px 0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-
-        .sidebar .logo {
-            padding: 0 20px 30px 20px;
-            border-bottom: 1px solid #2a3a4a;
-            margin-bottom: 20px;
-        }
-
-        .sidebar .logo h1 {
-            font-size: 22px;
-            font-weight: 700;
-        }
-
-        .sidebar .logo small {
-            font-size: 12px;
-            color: #8899aa;
-            display: block;
-            margin-top: 4px;
-        }
-
-        .sidebar ul {
-            list-style: none;
-            padding: 0 15px;
-        }
-
-        .sidebar ul li {
-            margin-bottom: 4px;
-        }
-
-        .sidebar ul li a {
-            display: block;
-            padding: 12px 16px;
-            color: #b0c4d8;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-
-        .sidebar ul li a:hover,
-        .sidebar ul li a.active {
-            background: #2a3a4a;
-            color: #fff;
-        }
-
-        .sidebar ul li a.active {
-            background: #2d7aff;
-        }
-
-        /* MAIN CONTENT */
-        .main-content {
-            margin-left: 250px;
-            padding: 30px 40px;
-            flex: 1;
-        }
-
-        /* HEADER */
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .page-header h2 {
-            font-size: 24px;
+        
+        .navbar-brand {
             font-weight: 600;
-            color: #1a2332;
+            font-size: 1.3rem;
         }
-
-        .page-header p {
-            color: #6b7a8a;
-            font-size: 14px;
-            margin-top: 4px;
+        
+        .container-fluid {
+            background-color: #ecf0f1;
         }
-
-        /* TOMBOL TAMBAH */
-        .btn-primary {
-            background: #2d7aff;
-            color: #fff;
+        
+        .card {
             border: none;
-            padding: 10px 24px;
             border-radius: 8px;
-            font-size: 14px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: 8px 8px 0 0;
+            border: none;
+            padding: 1.5rem;
+        }
+        
+        .btn-primary {
+            background: var(--secondary-color);
+            border: none;
+            border-radius: 5px;
+            padding: 0.5rem 1.5rem;
             font-weight: 500;
-            cursor: pointer;
-            transition: background 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
         }
-
+        
         .btn-primary:hover {
-            background: #1a5fd9;
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
         }
-
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 12px;
+        
+        .table thead {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: #f0f7ff;
+        }
+        
+        .badge {
+            padding: 0.5rem 0.8rem;
+            font-weight: 500;
+            border-radius: 4px;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            padding: 0.7rem;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+        
+        .alert {
             border-radius: 6px;
             border: none;
-            cursor: pointer;
+            padding: 1rem 1.5rem;
+        }
+        
+        .bg-dark {
+            background-color: var(--primary-color) !important;
+        }
+        
+        .bg-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .btn-info {
+            background: #1abc9c;
+            border: none;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #16a085;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger-color);
+            border: none;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn-success {
+            background: var(--success-color);
+            border: none;
+        }
+        
+        .btn-success:hover {
+            background: #219a52;
         }
 
-        .btn-edit {
-            background: #ffc107;
-            color: #1a2332;
-        }
-
-        .btn-edit:hover {
-            background: #e0a800;
-        }
-
-        .btn-delete {
-            background: #dc3545;
-            color: #fff;
-        }
-
-        .btn-delete:hover {
-            background: #b02a37;
-        }
-
-        /* TABLE */
-        .table-container {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-            overflow: hidden;
-            margin-top: 20px;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-            padding: 0 20px 20px 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-
-        thead {
-            background: #f8f9fa;
-            border-bottom: 2px solid #e9ecef;
-        }
-
-        thead th {
-            padding: 14px 16px;
-            text-align: left;
-            font-weight: 600;
-            color: #4a5a6a;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            white-space: nowrap;
-        }
-
-        tbody td {
-            padding: 14px 16px;
-            border-bottom: 1px solid #f0f0f0;
-            color: #1a2332;
-            vertical-align: middle;
-        }
-
-        tbody tr:hover {
-            background: #f8faff;
-        }
-
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
+        /* Badge custom colors for armada */
         .badge-darat {
-            background: #e3f2fd;
-            color: #0d6efd;
+            background-color: #3498db;
+            color: white;
         }
-
+        
         .badge-laut {
-            background: #e0f7fa;
-            color: #00838f;
+            background-color: #1abc9c;
+            color: white;
         }
-
+        
         .badge-udara {
-            background: #f3e5f5;
-            color: #7b1fa2;
+            background-color: #9b59b6;
+            color: white;
         }
-
-        .badge-available {
-            background: #e8f5e9;
-            color: #2e7d32;
+        
+        .badge-tersedia {
+            background-color: #27ae60;
+            color: white;
         }
-
-        .badge-maintenance {
-            background: #fff3e0;
-            color: #e65100;
+        
+        .badge-perawatan {
+            background-color: #f39c12;
+            color: white;
         }
-
-        .badge-booked {
-            background: #fce4ec;
-            color: #c62828;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6b7a8a;
-        }
-
-        .empty-state .icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-            display: block;
-        }
-
-        .empty-state h3 {
-            font-size: 18px;
-            color: #1a2332;
-            margin-bottom: 8px;
-        }
-
-        .empty-state p {
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-
-        .action-group {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 200px;
-            }
-            .main-content {
-                margin-left: 200px;
-                padding: 20px;
-            }
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .sidebar {
-                width: 60px;
-            }
-            .sidebar .logo h1,
-            .sidebar .logo small,
-            .sidebar ul li a span {
-                display: none;
-            }
-            .sidebar ul li a {
-                padding: 12px;
-                text-align: center;
-            }
-            .main-content {
-                margin-left: 60px;
-                padding: 15px;
-            }
+        
+        .badge-disewa {
+            background-color: #e74c3c;
+            color: white;
         }
     </style>
 </head>
 <body>
-
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="logo">
-            <h1>🚚 Cargo Ekspedisi</h1>
-            <small>Logistik System</small>
-        </div>
-        <ul>
-            <li><a href="#">📊 Dashboard</a></li>
-            <li><a href="#" class="active">🚛 Armada</a></li>
-            <li><a href="#">📦 Cargo</a></li>
-            <li><a href="#">👤 Pelanggan</a></li>
-            <li><a href="#">💳 Pembayaran</a></li>
-            <li><a href="#">👥 Staff</a></li>
-        </ul>
-    </aside>
-
-    <!-- MAIN CONTENT -->
-    <main class="main-content">
-
-        <!-- HEADER -->
-        <div class="page-header">
-            <div>
-                <h2>Manajemen Armada</h2>
-                <p>Kelola data armada - Truk Darat | Kapal Laut | Pesawat Kargo</p>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 bg-dark min-vh-100 p-0">
+                <div class="bg-primary p-3 text-white text-center">
+                    <h4>Cargo Ekspedisi</h4>
+                    <small>Logistik System</small>
+                </div>
+                <nav class="nav flex-column mt-3">
+                    <a class="nav-link text-white" href="../Dashboard.php">
+                        <i class="fas fa-dashboard"></i> Dashboard
+                    </a>
+                    <a class="nav-link bg-primary text-white" href="index.php">
+                        <i class="fas fa-truck"></i> Armada
+                    </a>
+                    <a class="nav-link text-white" href="../Cargo/index.php">
+                        <i class="fas fa-box"></i> Cargo
+                    </a>
+                    <a class="nav-link text-white" href="../Pelanggan/index.php">
+                        <i class="fas fa-users"></i> Pelanggan
+                    </a>
+                    <a class="nav-link text-white" href="../Pembayaran/index.php">
+                        <i class="fas fa-credit-card"></i> Pembayaran
+                    </a>
+                    <a class="nav-link text-white" href="../Staff/index.php">
+                        <i class="fas fa-user-tie"></i> Staff
+                    </a>
+                </nav>
             </div>
-            <button class="btn-primary" onclick="tambahArmada()">➕ Tambah Armada Baru</button>
-        </div>
-
-        <!-- TABLE -->
-        <div class="table-container">
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Kode</th>
-                            <th>Nama Armada</th>
-                            <th>Jenis</th>
-                            <th>Kapasitas (Kg)</th>
-                            <th>Status</th>
-                            <th>Lokasi</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="armadaTableBody">
-                        <!-- Data akan diisi oleh JavaScript -->
-                    </tbody>
-                </table>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 p-4">
+                <h2 class="mb-4"><i class="fas fa-truck"></i> Manajemen Armada</h2>
+                
+                <?php if ($message): ?>
+                    <div class="alert alert-<?= $messageType ?> alert-dismissible fade show" role="alert">
+                        <?= $message ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <?php endif; ?>
+                
+                <!-- Button to trigger modal -->
+                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addArmadaModal">
+                    <i class="fas fa-plus"></i> Tambah Armada Baru
+                </button>
+                
+                <!-- Armada List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Daftar Armada</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Kode</th>
+                                        <th>Nama Armada</th>
+                                        <th>Jenis</th>
+                                        <th>Kapasitas (Kg)</th>
+                                        <th>Status</th>
+                                        <th>Lokasi</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if ($result && $result->num_rows > 0): ?>
+                                        <?php while ($row = $result->fetch_assoc()): ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars($row['kode_armada']) ?></td>
+                                            <td><?= htmlspecialchars($row['nama_armada']) ?></td>
+                                            <td>
+                                                <?php
+                                                $jenisClass = 'badge-secondary';
+                                                if ($row['jenis_armada'] == 'Darat') $jenisClass = 'badge-darat';
+                                                else if ($row['jenis_armada'] == 'Laut') $jenisClass = 'badge-laut';
+                                                else if ($row['jenis_armada'] == 'Udara') $jenisClass = 'badge-udara';
+                                                ?>
+                                                <span class="badge <?= $jenisClass ?>">
+                                                    <?= htmlspecialchars($row['jenis_armada']) ?>
+                                                </span>
+                                            </td>
+                                            <td><?= number_format($row['kapasitas'], 0, ',', '.') ?></td>
+                                            <td>
+                                                <?php
+                                                $statusClass = 'badge-secondary';
+                                                if ($row['status'] == 'Tersedia') $statusClass = 'badge-tersedia';
+                                                else if ($row['status'] == 'Dalam Perawatan') $statusClass = 'badge-perawatan';
+                                                else if ($row['status'] == 'Disewa') $statusClass = 'badge-disewa';
+                                                ?>
+                                                <span class="badge <?= $statusClass ?>">
+                                                    <?= htmlspecialchars($row['status']) ?>
+                                                </span>
+                                            </td>
+                                            <td><?= htmlspecialchars($row['lokasi']) ?></td>
+                                            <td>
+                                                <a href="?edit=<?= $row['id_armada'] ?>" class="btn btn-sm btn-info">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </a>
+                                                <a href="?delete=<?= $row['id_armada'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus armada ini?')">
+                                                    <i class="fas fa-trash"></i> Hapus
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <?php endwhile; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="7" class="text-center py-4">
+                                                <i class="fas fa-truck fa-3x d-block mb-3 text-muted"></i>
+                                                <p class="mb-2">Belum ada data armada</p>
+                                                <small class="text-muted">Klik tombol "Tambah Armada Baru" untuk menambahkan</small>
+                                            </td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
-    </main>
-
-    <script>
-        // DATA DUMMY ARMADA
-        const dataArmada = [{
-            kode: 'TRK-001',
-            nama: 'Truk Kontainer 40ft',
-            jenis: 'Darat',
-            kapasitas: 25000,
-            status: 'Tersedia',
-            lokasi: 'Jakarta'
-        }, {
-            kode: 'TRK-002',
-            nama: 'Truk Box 8m',
-            jenis: 'Darat',
-            kapasitas: 8000,
-            status: 'Dalam Perawatan',
-            lokasi: 'Surabaya'
-        }, {
-            kode: 'KPL-001',
-            nama: 'Kapal Container KM Nusantara',
-            jenis: 'Laut',
-            kapasitas: 500000,
-            status: 'Tersedia',
-            lokasi: 'Pelabuhan Tanjung Priok'
-        }, {
-            kode: 'KPL-002',
-            nama: 'Kapal Roro Bahari',
-            jenis: 'Laut',
-            kapasitas: 300000,
-            status: 'Disewa',
-            lokasi: 'Pelabuhan Makassar'
-        }, {
-            kode: 'PSW-001',
-            nama: 'Boeing 747-8F',
-            jenis: 'Udara',
-            kapasitas: 140000,
-            status: 'Tersedia',
-            lokasi: 'Bandara Soekarno-Hatta'
-        }, {
-            kode: 'PSW-002',
-            nama: 'Airbus A330-200F',
-            jenis: 'Udara',
-            kapasitas: 70000,
-            status: 'Disewa',
-            lokasi: 'Bandara Juanda'
-        }];
-
-        // BADGE COLOR
-        function getBadgeJenis(jenis) {
-            const map = {
-                'Darat': 'badge-darat',
-                'Laut': 'badge-laut',
-                'Udara': 'badge-udara'
-            };
-            return map[jenis] || 'badge-darat';
-        }
-
-        function getBadgeStatus(status) {
-            const map = {
-                'Tersedia': 'badge-available',
-                'Dalam Perawatan': 'badge-maintenance',
-                'Disewa': 'badge-booked'
-            };
-            return map[status] || 'badge-available';
-        }
-
-        // RENDER TABLE
-        function renderArmada(data) {
-            const tbody = document.getElementById('armadaTableBody');
-
-            if (!data || data.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7">
-                            <div class="empty-state">
-                                <span class="icon">🚛</span>
-                                <h3>Belum ada data armada</h3>
-                                <p>Klik tombol "Tambah Armada Baru" untuk menambahkan</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            let rows = '';
-            data.forEach(item => {
-                rows += `
-                    <tr>
-                        <td><strong>${item.kode}</strong></td>
-                        <td>${item.nama}</td>
-                        <td><span class="badge ${getBadgeJenis(item.jenis)}">${item.jenis}</span></td>
-                        <td>${item.kapasitas.toLocaleString()}</td>
-                        <td><span class="badge ${getBadgeStatus(item.status)}">${item.status}</span></td>
-                        <td>${item.lokasi}</td>
-                        <td>
-                            <div class="action-group">
-                                <button class="btn-sm btn-edit" onclick="editArmada('${item.kode}')">✏️ Edit</button>
-                                <button class="btn-sm btn-delete" onclick="hapusArmada('${item.kode}')">🗑️ Hapus</button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            tbody.innerHTML = rows;
-        }
-
-        // FUNGSI TAMBAH
-        function tambahArmada() {
-            alert('Fungsi Tambah Armada akan muncul di sini (modal/form)');
-            // Di sini nanti kamu bisa buka modal form tambah armada
-        }
-
-        // FUNGSI EDIT
-        function editArmada(kode) {
-            alert(`Edit armada dengan kode: ${kode}`);
-        }
-
-        // FUNGSI HAPUS
-        function hapusArmada(kode) {
-            if (confirm(`Yakin ingin menghapus armada dengan kode ${kode}?`)) {
-                const index = dataArmada.findIndex(item => item.kode === kode);
-                if (index !== -1) {
-                    dataArmada.splice(index, 1);
-                    renderArmada(dataArmada);
-                }
-            }
-        }
-
-        // RENDER AWAL
-        renderArmada(dataArmada);
-    </script>
-
+    </div>
+    
+    <!-- Add Armada Modal -->
+    <div class="modal fade" id="addArmadaModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Tambah Armada Baru</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="action" value="create">
+                        <div class="mb-3">
+                            <label class="form-label">Kode Armada</label>
+                            <input type="text" class="form-control" name="kode_armada" required placeholder="Contoh: TRK-001">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nama Armada</label>
+                            <input type="text" class="form-control" name="nama_armada" required placeholder="Nama armada">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Jenis Armada</label>
+                            <select class="form-select" name="jenis_armada" required>
+                                <option value="Darat">🚛 Darat</option>
+                                <option value="Laut">🚢 Laut</option>
+                                <option value="Udara">✈️ Udara</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Kapasitas (Kg)</label>
+                            <input type="number" class="form-control" name="kapasitas" required placeholder="Kapasitas dalam Kg">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="status" required>
+                                <option value="Tersedia">✅ Tersedia</option>
+                                <option value="Dalam Perawatan">🔧 Dalam Perawatan</option>
+                                <option value="Disewa">📋 Disewa</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Lokasi</label>
+                            <input type="text" class="form-control" name="lokasi" required placeholder="Lokasi armada saat ini">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <?php if (isset($_GET['edit'])): 
+        $id = intval($_GET['edit']);
+        $editSql = "SELECT * FROM armada WHERE id_armada = $id";
+        $editResult = $koneksi->query($editSql);
+        $editData = $editResult->fetch_assoc();
+    ?>
+    <!-- Edit Armada Modal -->
+    <div class="modal fade show" id="editArmadaModal" tabindex="-1" style="display:block; background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="update_armada.php">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Armada</h5>
+                        <a href="index.php" class="btn-close"></a>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="id_armada" value="<?= $editData['id_armada'] ?>">
+                        <div class="mb-3">
+                            <label class="form-label">Kode Armada</label>
+                            <input type="text" class="form-control" name="kode_armada" value="<?= htmlspecialchars($editData['kode_armada']) ?>" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nama Armada</label>
+                            <input type="text" class="form-control" name="nama_armada" value="<?= htmlspecialchars($editData['nama_armada']) ?>" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Jenis Armada</label>
+                            <select class="form-select" name="jenis_armada" required>
+                                <option value="Darat" <?= $editData['jenis_armada'] == 'Darat' ? 'selected' : '' ?>>🚛 Darat</option>
+                                <option value="Laut" <?= $editData['jenis_armada'] == 'Laut' ? 'selected' : '' ?>>🚢 Laut</option>
+                                <option value="Udara" <?= $editData['jenis_armada'] == 'Udara' ? 'selected' : '' ?>>✈️ Udara</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Kapasitas (Kg)</label>
+                            <input type="number" class="form-control" name="kapasitas" value="<?= $editData['kapasitas'] ?>" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="status" required>
+                                <option value="Tersedia" <?= $editData['status'] == 'Tersedia' ? 'selected' : '' ?>>✅ Tersedia</option>
+                                <option value="Dalam Perawatan" <?= $editData['status'] == 'Dalam Perawatan' ? 'selected' : '' ?>>🔧 Dalam Perawatan</option>
+                                <option value="Disewa" <?= $editData['status'] == 'Disewa' ? 'selected' : '' ?>>📋 Disewa</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Lokasi</label>
+                            <input type="text" class="form-control" name="lokasi" value="<?= htmlspecialchars($editData['lokasi']) ?>" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Update</button>
+                        <a href="index.php" class="btn btn-secondary">Batal</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
