@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         $messageType = "danger";
     } else {
         // PERHATIAN: Gunakan 'code_armada' karena di database Anda pakai 'code_armada'
-        $sql = "INSERT INTO armada (code_armada, nama_armada, jenis_armada, sub_jenis, kapasitas, status, lokasi) 
+        $sql = "INSERT INTO armada (id_armada_code, nama_armada, jenis_armada, sub_jenis, kapasitas, status, lokasi) 
                 VALUES ('$kode', '$nama', '$jenis', '$sub_jenis', '$kapasitas', '$status', '$lokasi')";
         
         if ($koneksi->query($sql)) {
