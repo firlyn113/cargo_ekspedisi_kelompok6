@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Jun 10, 2026 at 01:23 PM
+-- Generation Time: Jun 16, 2026 at 07:39 AM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -42,6 +42,14 @@ CREATE TABLE `armada` (
   `izin_penerbangan_khusus` varchar(100) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `armada`
+--
+
+INSERT INTO `armada` (`id_armada`, `id_armada_code`, `kapasitas_maksimal_kg`, `status_kelaikan`, `biaya_operasional_dasar`, `jenis_armada`, `jumlah_roda`, `rute_tol`, `nama_dermaga`, `jenis_kontainer`, `batas_ketinggian`, `izin_penerbangan_khusus`, `created_at`) VALUES
+(1, 'TRK-001', 1.00, 'Laik', 0.10, 'TrukDarat', 4, 'sdfjsr', '', '', 0.00, '', '2026-06-16 05:44:14'),
+(3, 'TRK-004', 1.00, 'Laik', 24444.00, 'PesawatKargo', 4, '', '', '', 0.04, 'sdfsrgf', '2026-06-16 05:45:51');
 
 -- --------------------------------------------------------
 
@@ -88,6 +96,13 @@ CREATE TABLE `pelanggan` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+--
+-- Dumping data for table `pelanggan`
+--
+
+INSERT INTO `pelanggan` (`id_pelanggan`, `id_pelanggan_code`, `nama_lengkap`, `total_transaksi_bulan_ini`, `poin_reward`, `jenis_pelanggan`, `promo_voucher`, `batas_berat_max`, `akses_layanan_prioritas`, `personal_assistant`, `npwp_perusahaan`, `batas_tempo_pembayaran`, `created_at`) VALUES
+(1, 'PLG004', 'INDSFI', 0.00, 100, 'VIP', NULL, NULL, 1, 'KERTHUITYOIY ', NULL, NULL, '2026-06-15 22:08:02');
+
 -- --------------------------------------------------------
 
 --
@@ -131,6 +146,29 @@ CREATE TABLE `staff` (
   `area_cakupan` varchar(100) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `staff`
+--
+
+INSERT INTO `staff` (`id_staff`, `id_staff_code`, `nama_lengkap`, `gaji_pokok`, `jam_kerja`, `jenis_staff`, `nomor_sim_b`, `uang_makan_jalan`, `shift_kerja`, `zona_gudang`, `plat_nomor_motor`, `area_cakupan`, `created_at`) VALUES
+(1, 'ftju4356', 'fgkhtghjk', '3465467.00', 766, 'KurirMotor', NULL, NULL, NULL, NULL, 'B 3455 PP', 'Jaksel', '2026-06-16 03:53:58'),
+(2, 'Stf388', 'Jumlina', '2300000.00', 144, 'AdminGudang', NULL, NULL, 'Siang', 'Maos', NULL, NULL, '2026-06-16 03:59:46'),
+(3, 'STF001', 'Ahmad Fahrudin', '4500000.00', 160, 'SupirTruk', 'SIMB-123456', '50000.00', 'Pagi', 'Zona A', 'B 1234 ABC', 'Jabodetabek', '2026-06-16 07:21:34'),
+(4, 'STF002', 'Budi Santoso', '4200000.00', 144, 'SupirTruk', 'SIMB-234567', '45000.00', 'Pagi', 'Zona B', 'B 5678 DEF', 'Cirebon - Indramayu', '2026-06-16 07:21:34'),
+(5, 'STF003', 'Candra Wijaya', '4800000.00', 168, 'SupirTruk', 'SIMB-345678', '55000.00', 'Malam', 'Zona C', 'B 9012 GHI', 'Bandung Raya', '2026-06-16 07:21:34'),
+(6, 'STF004', 'Dian Purnama', '4300000.00', 152, 'SupirTruk', 'SIMB-456789', '47000.00', 'Pagi', 'Zona A', 'B 3456 JKL', 'Bekasi - Karawang', '2026-06-16 07:21:34'),
+(7, 'STF005', 'Eko Prasetyo', '4600000.00', 160, 'SupirTruk', 'SIMB-567890', '52000.00', 'Siang', 'Zona D', 'B 7890 MNO', 'Semarang Raya', '2026-06-16 07:21:34'),
+(8, 'STF006', 'Fitri Handayani', '3500000.00', 160, 'AdminGudang', NULL, NULL, 'Pagi', 'Zona A', NULL, NULL, '2026-06-16 07:21:34'),
+(9, 'STF007', 'Gilang Ramadhan', '3700000.00', 168, 'AdminGudang', NULL, NULL, 'Malam', 'Zona B', NULL, NULL, '2026-06-16 07:21:34'),
+(10, 'STF008', 'Hesti Puspita', '3400000.00', 152, 'AdminGudang', NULL, NULL, 'Pagi', 'Zona C', NULL, NULL, '2026-06-16 07:21:34'),
+(11, 'STF009', 'Indra Kusuma', '3800000.00', 160, 'AdminGudang', NULL, NULL, 'Siang', 'Zona A', NULL, NULL, '2026-06-16 07:21:34'),
+(12, 'STF010', 'Joko Widodo', '3600000.00', 144, 'AdminGudang', NULL, NULL, 'Malam', 'Zona D', NULL, NULL, '2026-06-16 07:21:34'),
+(13, 'STF011', 'Karina Maharani', '3200000.00', 160, 'KurirMotor', NULL, NULL, NULL, NULL, 'B 1234 XYZ', 'Jakarta Selatan', '2026-06-16 07:21:34'),
+(14, 'STF012', 'Lukman Hakim', '3100000.00', 144, 'KurirMotor', NULL, NULL, NULL, NULL, 'B 5678 ABC', 'Jakarta Timur', '2026-06-16 07:21:34'),
+(15, 'STF013', 'Mawar Sari', '3300000.00', 168, 'KurirMotor', NULL, NULL, NULL, NULL, 'B 9012 DEF', 'Jakarta Pusat', '2026-06-16 07:21:34'),
+(16, 'STF014', 'Nanda Putri', '3150000.00', 152, 'KurirMotor', NULL, NULL, NULL, NULL, 'B 3456 GHI', 'Jakarta Barat', '2026-06-16 07:21:34'),
+(17, 'STF015', 'Oki Setiawan', '3250000.00', 160, 'KurirMotor', NULL, NULL, NULL, NULL, 'B 7890 JKL', 'Jakarta Utara', '2026-06-16 07:21:34');
 
 -- --------------------------------------------------------
 
@@ -209,7 +247,7 @@ ALTER TABLE `transaksi_pengiriman`
 -- AUTO_INCREMENT for table `armada`
 --
 ALTER TABLE `armada`
-  MODIFY `id_armada` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_armada` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `kargo`
@@ -221,7 +259,7 @@ ALTER TABLE `kargo`
 -- AUTO_INCREMENT for table `pelanggan`
 --
 ALTER TABLE `pelanggan`
-  MODIFY `id_pelanggan` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_pelanggan` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `pembayaran`
@@ -233,7 +271,7 @@ ALTER TABLE `pembayaran`
 -- AUTO_INCREMENT for table `staff`
 --
 ALTER TABLE `staff`
-  MODIFY `id_staff` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_staff` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `transaksi_pengiriman`
