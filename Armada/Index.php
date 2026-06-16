@@ -1,9 +1,10 @@
 <?php
-// armada/index.php
-require_once '../config/koneksi.php';
-require_once 'TrukDarat.php';
-require_once 'KapalLaut.php';
-require_once 'PesawatKargo.php';
+// Armada/index.php - PASTIKAN NAMA FILE "index.php" BUKAN "Index.php"
+require_once dirname(__DIR__) . '/config/koneksi.php';
+require_once __DIR__ . '/Armada.php';
+require_once __DIR__ . '/TrukDarat.php';
+require_once __DIR__ . '/KapalLaut.php';
+require_once __DIR__ . '/PesawatKargo.php';
 
 session_start();
 
@@ -13,54 +14,69 @@ $error = '';
 
 // Handle Delete
 if (isset($_GET['delete'])) {
-    $id = $_GET['delete'];
+    $id = (int)$_GET['delete'];
     if (Armada::deleteArmada($conn, $id)) {
         $message = "Armada berhasil dihapus!";
+        // Refresh halaman setelah hapus
+        header("Location: index.php?msg=" . urlencode($message));
+        exit();
     } else {
         $error = "Gagal menghapus armada!";
     }
 }
 
+// Handle pesan dari redirect
+if (isset($_GET['msg'])) {
+    $message = $_GET['msg'];
+}
+
 // Handle Add/Edit
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'add') {
     $jenis_armada = $_POST['jenis_armada'];
+    $armada = null;
     
-    switch ($jenis_armada) {
-        case 'TrukDarat':
-            $armada = new TrukDarat($conn);
-            $armada->setIdArmadaCode($_POST['id_armada_code']);
-            $armada->setKapasitasMaksimal($_POST['kapasitas']);
-            $armada->setStatusKelaikan($_POST['status']);
-            $armada->setBiayaOperasionalDasar($_POST['biaya_dasar']);
-            $armada->setJumlahRoda($_POST['jumlah_roda']);
-            $armada->setRuteTol($_POST['rute_tol']);
-            break;
-            
-        case 'KapalLaut':
-            $armada = new KapalLaut($conn);
-            $armada->setIdArmadaCode($_POST['id_armada_code']);
-            $armada->setKapasitasMaksimal($_POST['kapasitas']);
-            $armada->setStatusKelaikan($_POST['status']);
-            $armada->setBiayaOperasionalDasar($_POST['biaya_dasar']);
-            $armada->setNamaDermaga($_POST['nama_dermaga']);
-            $armada->setJenisKontainer($_POST['jenis_kontainer']);
-            break;
-            
-        case 'PesawatKargo':
-            $armada = new PesawatKargo($conn);
-            $armada->setIdArmadaCode($_POST['id_armada_code']);
-            $armada->setKapasitasMaksimal($_POST['kapasitas']);
-            $armada->setStatusKelaikan($_POST['status']);
-            $armada->setBiayaOperasionalDasar($_POST['biaya_dasar']);
-            $armada->setBatasKetinggian($_POST['batas_ketinggian']);
-            $armada->setIzinPenerbangan($_POST['izin_penerbangan']);
-            break;
-    }
-    
-    if ($armada->simpanArmada()) {
-        $message = "Armada berhasil ditambahkan!";
-    } else {
-        $error = "Gagal menambahkan armada!";
+    try {
+        switch ($jenis_armada) {
+            case 'TrukDarat':
+                $armada = new TrukDarat($conn);
+                $armada->setIdArmadaCode($_POST['id_armada_code']);
+                $armada->setKapasitasMaksimal($_POST['kapasitas']);
+                $armada->setStatusKelaikan($_POST['status']);
+                $armada->setBiayaOperasionalDasar($_POST['biaya_dasar']);
+                $armada->setJumlahRoda($_POST['jumlah_roda']);
+                $armada->setRuteTol($_POST['rute_tol']);
+                break;
+                
+            case 'KapalLaut':
+                $armada = new KapalLaut($conn);
+                $armada->setIdArmadaCode($_POST['id_armada_code']);
+                $armada->setKapasitasMaksimal($_POST['kapasitas']);
+                $armada->setStatusKelaikan($_POST['status']);
+                $armada->setBiayaOperasionalDasar($_POST['biaya_dasar']);
+                $armada->setNamaDermaga($_POST['nama_dermaga']);
+                $armada->setJenisKontainer($_POST['jenis_kontainer']);
+                break;
+                
+            case 'PesawatKargo':
+                $armada = new PesawatKargo($conn);
+                $armada->setIdArmadaCode($_POST['id_armada_code']);
+                $armada->setKapasitasMaksimal($_POST['kapasitas']);
+                $armada->setStatusKelaikan($_POST['status']);
+                $armada->setBiayaOperasionalDasar($_POST['biaya_dasar']);
+                $armada->setBatasKetinggian($_POST['batas_ketinggian']);
+                $armada->setIzinPenerbangan($_POST['izin_penerbangan']);
+                break;
+        }
+        
+        if ($armada && $armada->simpanArmada()) {
+            $message = "Armada berhasil ditambahkan!";
+            header("Location: index.php?msg=" . urlencode($message));
+            exit();
+        } else {
+            $error = "Gagal menambahkan armada!";
+        }
+    } catch (Exception $e) {
+        $error = "Error: " . $e->getMessage();
     }
 }
 
@@ -272,25 +288,27 @@ $armada_list = Armada::getAllArmada($conn);
         </div>
         
         <?php if ($message): ?>
-            <div class="alert alert-success"><?php echo $message; ?></div>
+            <div class="alert alert-success"><?php echo htmlspecialchars($message); ?></div>
         <?php endif; ?>
         
         <?php if ($error): ?>
-            <div class="alert alert-error"><?php echo $error; ?></div>
+            <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
         <?php endif; ?>
         
         <div class="content">
             <!-- Form Tambah Armada -->
             <div class="form-section">
                 <h2>➕ Tambah Armada Baru</h2>
-                <form method="POST">
+                <form method="POST" onsubmit="return validateForm()">
+                    <input type="hidden" name="action" value="add">
+                    
                     <div class="form-group">
                         <label>Jenis Armada</label>
                         <select name="jenis_armada" id="jenis_armada" required>
                             <option value="">Pilih Jenis Armada</option>
-                            <option value="TrukDarat">Truk Darat</option>
-                            <option value="KapalLaut">Kapal Laut</option>
-                            <option value="PesawatKargo">Pesawat Kargo</option>
+                            <option value="TrukDarat">🚛 Truk Darat</option>
+                            <option value="KapalLaut">⛴️ Kapal Laut</option>
+                            <option value="PesawatKargo">✈️ Pesawat Kargo</option>
                         </select>
                     </div>
                     
@@ -307,8 +325,8 @@ $armada_list = Armada::getAllArmada($conn);
                     <div class="form-group">
                         <label>Status Kelaikan</label>
                         <select name="status" required>
-                            <option value="Laik">Laik</option>
-                            <option value="Tidak Laik">Tidak Laik</option>
+                            <option value="Laik">✅ Laik</option>
+                            <option value="Tidak Laik">❌ Tidak Laik</option>
                         </select>
                     </div>
                     
@@ -333,14 +351,14 @@ $armada_list = Armada::getAllArmada($conn);
                     <div id="kapal_fields" style="display:none;">
                         <div class="form-group">
                             <label>Nama Dermaga</label>
-                            <input type="text" name="nama_dermaga">
+                            <input type="text" name="nama_dermaga" placeholder="Contoh: Tanjung Priok">
                         </div>
                         <div class="form-group">
                             <label>Jenis Kontainer</label>
                             <select name="jenis_kontainer">
-                                <option value="Standard">Standard</option>
-                                <option value="Refrigerated">Refrigerated</option>
-                                <option value="Open Top">Open Top</option>
+                                <option value="Standard">📦 Standard</option>
+                                <option value="Refrigerated">❄️ Refrigerated</option>
+                                <option value="Open Top">🔓 Open Top</option>
                             </select>
                         </div>
                     </div>
@@ -349,7 +367,7 @@ $armada_list = Armada::getAllArmada($conn);
                     <div id="pesawat_fields" style="display:none;">
                         <div class="form-group">
                             <label>Batas Ketinggian (meter)</label>
-                            <input type="number" step="0.01" name="batas_ketinggian">
+                            <input type="number" step="0.01" name="batas_ketinggian" placeholder="Contoh: 10000">
                         </div>
                         <div class="form-group">
                             <label>Izin Penerbangan Khusus</label>
@@ -357,7 +375,7 @@ $armada_list = Armada::getAllArmada($conn);
                         </div>
                     </div>
                     
-                    <button type="submit">Simpan Armada</button>
+                    <button type="submit">💾 Simpan Armada</button>
                 </form>
             </div>
             
@@ -365,92 +383,99 @@ $armada_list = Armada::getAllArmada($conn);
             <div class="list-section">
                 <h2>📋 Daftar Armada</h2>
                 <?php if (count($armada_list) > 0): ?>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Kode</th>
-                                <th>Jenis</th>
-                                <th>Kapasitas</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($armada_list as $armada): ?>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($armada['id_armada_code']); ?></td>
-                                    <td>
-                                        <span class="jenis-badge 
-                                            <?php 
-                                                echo $armada['jenis_armada'] == 'TrukDarat' ? 'truk' : 
-                                                    ($armada['jenis_armada'] == 'KapalLaut' ? 'kapal' : 'pesawat'); 
-                                            ?>">
-                                            <?php 
-                                                echo $armada['jenis_armada'] == 'TrukDarat' ? '🚛 Truk Darat' : 
-                                                    ($armada['jenis_armada'] == 'KapalLaut' ? '⛴️ Kapal Laut' : '✈️ Pesawat Kargo'); 
-                                            ?>
-                                        </span>
-                                    </td>
-                                    <td><?php echo number_format($armada['kapasitas_maksimal_kg'], 0, ',', '.'); ?> kg</td>
-                                    <td>
-                                        <?php 
-                                            $status_color = $armada['status_kelaikan'] == 'Laik' ? '#28a745' : '#dc3545';
-                                            echo '<span style="color: ' . $status_color . '; font-weight: bold;">' . $armada['status_kelaikan'] . '</span>';
-                                        ?>
-                                    </td>
-                                    <td>
-                                        <a href="?delete=<?php echo $armada['id_armada']; ?>" 
-                                           class="btn-delete" 
-                                           onclick="return confirm('Yakin hapus armada ini?')">Hapus</a>
-                                    </td>
+                                    <th>Kode</th>
+                                    <th>Jenis</th>
+                                    <th>Kapasitas</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
                                 </tr>
-                                
-                                <!-- Demo Polymorphism: Tampilkan hasil perhitungan biaya & kelayakan -->
-                                <tr style="background:#f8f9fa;">
-                                    <td colspan="5" style="padding: 10px;">
-                                        <div class="card-detail">
-                                            <strong>📊 Hasil Perhitungan (Polymorphism):</strong><br>
-                                            <?php
-                                            // Demonstrasi polymorphism
-                                            switch ($armada['jenis_armada']) {
-                                                case 'TrukDarat':
-                                                    $demoArmada = new TrukDarat($conn);
-                                                    $demoArmada->setBiayaOperasionalDasar($armada['biaya_operasional_dasar']);
-                                                    $demoArmada->setStatusKelaikan($armada['status_kelaikan']);
-                                                    $demoArmada->setKapasitasMaksimal($armada['kapasitas_maksimal_kg']);
-                                                    $demoArmada->setRuteTol($armada['rute_tol'] ?? '');
-                                                    break;
-                                                case 'KapalLaut':
-                                                    $demoArmada = new KapalLaut($conn);
-                                                    $demoArmada->setBiayaOperasionalDasar($armada['biaya_operasional_dasar']);
-                                                    $demoArmada->setStatusKelaikan($armada['status_kelaikan']);
-                                                    $demoArmada->setNamaDermaga($armada['nama_dermaga'] ?? '');
-                                                    $demoArmada->setJenisKontainer($armada['jenis_kontainer'] ?? '');
-                                                    break;
-                                                default:
-                                                    $demoArmada = new PesawatKargo($conn);
-                                                    $demoArmada->setBiayaOperasionalDasar($armada['biaya_operasional_dasar']);
-                                                    $demoArmada->setStatusKelaikan($armada['status_kelaikan']);
-                                                    $demoArmada->setBatasKetinggian($armada['batas_ketinggian'] ?? 0);
-                                                    $demoArmada->setIzinPenerbangan($armada['izin_penerbangan_khusus'] ?? '');
-                                                    break;
-                                            }
-                                            
-                                            if (isset($demoArmada)) {
-                                                echo "💰 Biaya Operasional Total: Rp " . number_format($demoArmada->hitungBiayaOperasional(), 0, ',', '.') . "<br>";
-                                                echo "🔍 Hasil Cek Kelayakan:<br>";
-                                                $hasilKelayakan = $demoArmada->cekKelayakanJalan();
-                                                foreach ($hasilKelayakan as $cek) {
-                                                    echo "&nbsp;&nbsp;&nbsp;• " . $cek . "<br>";
+                            </thead>
+                            <tbody>
+                                <?php foreach ($armada_list as $armada): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($armada['id_armada_code']); ?></td>
+                                        <td>
+                                            <span class="jenis-badge 
+                                                <?php 
+                                                    echo $armada['jenis_armada'] == 'TrukDarat' ? 'truk' : 
+                                                        ($armada['jenis_armada'] == 'KapalLaut' ? 'kapal' : 'pesawat'); 
+                                                ?>">
+                                                <?php 
+                                                    echo $armada['jenis_armada'] == 'TrukDarat' ? '🚛 Truk Darat' : 
+                                                        ($armada['jenis_armada'] == 'KapalLaut' ? '⛴️ Kapal Laut' : '✈️ Pesawat Kargo'); 
+                                                ?>
+                                            </span>
+                                        </td>
+                                        <td><?php echo number_format($armada['kapasitas_maksimal_kg'], 0, ',', '.'); ?> kg</td>
+                                        <td>
+                                            <?php 
+                                                $status_color = $armada['status_kelaikan'] == 'Laik' ? '#28a745' : '#dc3545';
+                                                $status_icon = $armada['status_kelaikan'] == 'Laik' ? '✅' : '❌';
+                                                echo '<span style="color: ' . $status_color . '; font-weight: bold;">' . $status_icon . ' ' . $armada['status_kelaikan'] . '</span>';
+                                            ?>
+                                        </td>
+                                        <td>
+                                            <a href="?delete=<?php echo $armada['id_armada']; ?>" 
+                                               class="btn-delete" 
+                                               onclick="return confirm('Yakin hapus armada ini?')">🗑️ Hapus</a>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Demo Polymorphism: Tampilkan hasil perhitungan biaya & kelayakan -->
+                                    <tr style="background:#f8f9fa;">
+                                        <td colspan="5" style="padding: 10px;">
+                                            <div class="card-detail">
+                                                <strong>📊 Hasil Perhitungan (Polymorphism):</strong><br>
+                                                <?php
+                                                // Demonstrasi polymorphism
+                                                try {
+                                                    switch ($armada['jenis_armada']) {
+                                                        case 'TrukDarat':
+                                                            $demoArmada = new TrukDarat($conn);
+                                                            $demoArmada->setBiayaOperasionalDasar($armada['biaya_operasional_dasar']);
+                                                            $demoArmada->setStatusKelaikan($armada['status_kelaikan']);
+                                                            $demoArmada->setKapasitasMaksimal($armada['kapasitas_maksimal_kg']);
+                                                            $demoArmada->setRuteTol($armada['rute_tol'] ?? '');
+                                                            break;
+                                                        case 'KapalLaut':
+                                                            $demoArmada = new KapalLaut($conn);
+                                                            $demoArmada->setBiayaOperasionalDasar($armada['biaya_operasional_dasar']);
+                                                            $demoArmada->setStatusKelaikan($armada['status_kelaikan']);
+                                                            $demoArmada->setNamaDermaga($armada['nama_dermaga'] ?? '');
+                                                            $demoArmada->setJenisKontainer($armada['jenis_kontainer'] ?? '');
+                                                            break;
+                                                        default:
+                                                            $demoArmada = new PesawatKargo($conn);
+                                                            $demoArmada->setBiayaOperasionalDasar($armada['biaya_operasional_dasar']);
+                                                            $demoArmada->setStatusKelaikan($armada['status_kelaikan']);
+                                                            $demoArmada->setBatasKetinggian($armada['batas_ketinggian'] ?? 0);
+                                                            $demoArmada->setIzinPenerbangan($armada['izin_penerbangan_khusus'] ?? '');
+                                                            break;
+                                                    }
+                                                    
+                                                    if (isset($demoArmada)) {
+                                                        echo "💰 Biaya Operasional Total: Rp " . number_format($demoArmada->hitungBiayaOperasional(), 0, ',', '.') . "<br>";
+                                                        echo "🔍 Hasil Cek Kelayakan:<br>";
+                                                        $hasilKelayakan = $demoArmada->cekKelayakanJalan();
+                                                        foreach ($hasilKelayakan as $cek) {
+                                                            echo "&nbsp;&nbsp;&nbsp;• " . $cek . "<br>";
+                                                        }
+                                                    }
+                                                } catch (Exception $e) {
+                                                    echo "⚠️ Error demo: " . $e->getMessage();
                                                 }
-                                            }
-                                            ?>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                                                ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 <?php else: ?>
                     <p style="text-align: center; padding: 40px; color: #999;">Belum ada data armada. Silakan tambah armada baru.</p>
                 <?php endif; ?>
@@ -464,19 +489,45 @@ $armada_list = Armada::getAllArmada($conn);
         const kapalFields = document.getElementById('kapal_fields');
         const pesawatFields = document.getElementById('pesawat_fields');
         
-        jenisArmada.addEventListener('change', function() {
-            trukFields.style.display = 'none';
-            kapalFields.style.display = 'none';
-            pesawatFields.style.display = 'none';
-            
-            if (this.value === 'TrukDarat') {
-                trukFields.style.display = 'block';
-            } else if (this.value === 'KapalLaut') {
-                kapalFields.style.display = 'block';
-            } else if (this.value === 'PesawatKargo') {
-                pesawatFields.style.display = 'block';
+        function validateForm() {
+            const jenis = jenisArmada.value;
+            if (jenis === 'TrukDarat') {
+                const jumlahRoda = document.querySelector('input[name="jumlah_roda"]').value;
+                if (!jumlahRoda) {
+                    alert('Jumlah roda harus diisi untuk Truk Darat!');
+                    return false;
+                }
+            } else if (jenis === 'KapalLaut') {
+                const namaDermaga = document.querySelector('input[name="nama_dermaga"]').value;
+                if (!namaDermaga) {
+                    alert('Nama dermaga harus diisi untuk Kapal Laut!');
+                    return false;
+                }
+            } else if (jenis === 'PesawatKargo') {
+                const batasKetinggian = document.querySelector('input[name="batas_ketinggian"]').value;
+                if (!batasKetinggian) {
+                    alert('Batas ketinggian harus diisi untuk Pesawat Kargo!');
+                    return false;
+                }
             }
-        });
+            return true;
+        }
+        
+        if (jenisArmada) {
+            jenisArmada.addEventListener('change', function() {
+                trukFields.style.display = 'none';
+                kapalFields.style.display = 'none';
+                pesawatFields.style.display = 'none';
+                
+                if (this.value === 'TrukDarat') {
+                    trukFields.style.display = 'block';
+                } else if (this.value === 'KapalLaut') {
+                    kapalFields.style.display = 'block';
+                } else if (this.value === 'PesawatKargo') {
+                    pesawatFields.style.display = 'block';
+                }
+            });
+        }
     </script>
 </body>
 </html>
